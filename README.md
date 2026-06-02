@@ -2,7 +2,7 @@
 
 A Kanban-based task management tool built with vanilla JavaScript and Firebase.
 
-🔗 [Live Demo](#) ← coming soon!
+🔗 [Live Demo](https://join.mischasiegrist.ch)
 
 ![Join Board](assets/img/board-screen.png)
 
