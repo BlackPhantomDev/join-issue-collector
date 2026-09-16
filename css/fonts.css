@@ -17,3 +17,9 @@
     font-family: InterItalic;
     src: url('../assets/fonts/inter/Inter_18pt-Italic.ttf');
 }
+
+@font-face {
+    font-family: OpenSans;
+    src: url('../assets/fonts/Open_Sans/OpenSans-VariableFont_wdth\,wght.ttf') format('truetype');
+
+}
