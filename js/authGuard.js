@@ -7,7 +7,7 @@ import {
   ref,
   get,
 } from "https://www.gstatic.com/firebasejs/12.11.0/firebase-database.js";
-const homePaths = ["/", "/index.html", "index.html"];
+const homePaths = ["/", "/login.html", "login.html"];
 const publicPaths = [
   "/privacy.html",
   "privacy.html",
@@ -15,6 +15,8 @@ const publicPaths = [
   "legal.html",
   "/help.html",
   "help.html",
+  "/index.html",
+  "index.html"
 ];
 const path = window.location.pathname;
 
