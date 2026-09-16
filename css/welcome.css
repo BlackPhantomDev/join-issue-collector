@@ -1,0 +1,103 @@
+#welcome-body {
+  background-color: #2a3647;
+  height: 100dvh;
+}
+
+#welcome-main {
+  position: relative;
+  max-width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+
+#welcome-wrapper {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+
+  gap: 24px;
+  padding: 48px;
+
+  max-width: 800px;
+  width: 100%;
+  background-color: white;
+  font-family: OpenSans;
+  border-radius: 30px;
+}
+
+#stakeholder-btn {
+    background-color: var(--highligted-color);
+    border: 2px solid var(--highligted-color);
+    border-radius: 8px;
+    font-size: 24px;
+}
+
+#stakeholder-btn a {
+    font-family: OpenSans;
+    color: white;
+}
+
+#member-btn {
+    font-size: 20px;
+    border-radius: 8px;
+    border-width: 1px;
+}
+
+#member-btn a {
+    font-family: OpenSans;
+    font-weight: 400;
+}
+
+#wrapper-desc {
+  font-size: 24px;
+}
+
+#wrapper-footer {
+  display: flex;
+  flex-direction: row;
+  gap: 32px;
+  width: 100%;
+}
+
+#stakeholder,
+#member {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 16px;
+  font-size: 24px;
+  width: 50%;
+}
+
+#welcome-privacy {
+  display: flex;
+  flex-direction: row;
+  justify-content: center;
+  align-items: center;
+  width: 100%;
+  height: 100px;
+  gap: 16px;
+}
+
+#welcome-privacy a {
+  color: white;
+  text-decoration: none;
+}
+#welcome-privacy a:hover {
+  color: var(--highligted-color);
+  font-weight: bolder;
+}
+
+#welcome-body footer {
+  height: 100px;
+}
+
+@media (max-width: 575px) {
+  #welcome-privacy {
+    height: 100px;
+  }
+}
+

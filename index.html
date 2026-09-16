@@ -1,0 +1,47 @@
+<!doctype html>
+<html lang="de">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Join | Welcome</title>
+    <script type="module" src="./js/authGuard.js"></script>
+    <link rel="stylesheet" href="/main.css" />
+    <link
+      rel="shortcut icon"
+      href="./assets/img/logo-light.svg"
+      type="image/x-icon"
+    />
+  </head>
+
+  <body id="welcome-body">
+
+    <main id="welcome-main">
+      <div id="welcome-wrapper">
+        <h3>Welcome</h3>
+        <span class="spacer"></span>
+        <p id="wrapper-desc">Pick the option that suits your role: create a request as a stakeholder or log in if you’re part of the team.</p>
+        <div id="wrapper-footer">
+            <div id="stakeholder">
+                <p><span><img src="./assets/icons/stakeholder.svg" alt="briefcase icon"></span> Are you a stakeholder?</p>
+                <button class="btn" id="stakeholder-btn"><a href="./stakeholder.html">Create request</a></button>
+            </div>
+            <div id="member">
+                <p><span><img src="./assets/icons/member.svg" alt="member icon"></span> Are you a team member?</p>
+                <button class="btn" id="member-btn"><a href="./login.html">Member log in</a></button>
+            </div>
+        </div>
+      </div>
+    </main>
+
+    <footer>
+      <div id="welcome-privacy" class="privacy">
+        <a href="./privacy.html">Privacy Policy</a>
+        <a href="./legal.html">Legal notice</a>
+      </div>
+    </footer>
+
+    <script src="./script.js"></script>
+    <script src="./js/templates.js"></script>
+    <script type="module" src="./js/authService.js"></script>
+  </body>
+</html>
