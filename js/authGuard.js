@@ -2,11 +2,11 @@ import { auth, db } from "./firebaseAuth.js";
 import {
   onAuthStateChanged,
   signOut,
-} from "https://www.gstatic.com/firebasejs/12.11.0/firebase-auth.js";
+} from "https://www.gstatic.com/firebasejs/12.19.0/firebase-auth.js";
 import {
   ref,
   get,
-} from "https://www.gstatic.com/firebasejs/12.11.0/firebase-database.js";
+} from "https://www.gstatic.com/firebasejs/12.19.0/firebase-database.js";
 const homePaths = ["/", "/login.html", "login.html"];
 const publicPaths = [
   "/privacy.html",
