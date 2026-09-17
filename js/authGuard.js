@@ -7,7 +7,15 @@ import {
   ref,
   get,
 } from "https://www.gstatic.com/firebasejs/12.19.0/firebase-database.js";
-const homePaths = ["/", "/login.html", "login.html"];
+const homePaths = [
+  "/",
+  "/login.html",
+  "login.html",
+  "/index.html",
+  "index.html",
+  "/stakeholder.html",
+  "stakeholder.html",
+];
 const publicPaths = [
   "/privacy.html",
   "privacy.html",
@@ -15,8 +23,6 @@ const publicPaths = [
   "legal.html",
   "/help.html",
   "help.html",
-  "/index.html",
-  "index.html"
 ];
 const path = window.location.pathname;
 
@@ -35,7 +41,7 @@ async function handleAuthenticatedUser(user, path) {
   const contactSnap = await get(ref(db, `contacts/${contactId}`));
   window.currentUser = contactSnap.val();
   renderUserMenue();
-  if (homePaths.includes(path)) {
+  if (path.includes("login.html")) {
     window.location.href = "./summary.html";
   } else if (publicPaths.includes(path)) {
     const page = path.includes("privacy")
@@ -73,9 +79,13 @@ onAuthStateChanged(auth, async (user) => {
     if (user.isAnonymous) {
       window.currentUser = { name: "Guest" };
       renderUserMenue();
-      if (homePaths.includes(path)) {
+      if (path.includes("login.html")) {
         window.location.href = "./summary.html";
-      } else if (publicPaths.includes(path)) {
+      } else if (
+        path.includes("privacy") ||
+        path.includes("legal") ||
+        path.includes("help")
+      ) {
         const page = path.includes("privacy")
           ? "privacy"
           : path.includes("legal")
