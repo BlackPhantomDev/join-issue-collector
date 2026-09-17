@@ -231,7 +231,7 @@ document.addEventListener('click', (e) => {
  * @param {string} statusArg - The initial status of the task (default: "todo")
  * @returns {Object} The generated task object
  */
-function generateTaskJson(taskID, statusArg='todo') {
+function generateTaskJson(taskID, statusArg='triage') {
     return {
         id: taskID,
         title: getTaskTitle(),
@@ -242,7 +242,23 @@ function generateTaskJson(taskID, statusArg='todo') {
         categoryLabelColor: getTaskCategoryLabelColor(getTaskCategory()),
         assignedTo: getAssignedTo(),
         subtasks: getSubtasks(),
-        status: statusArg
+        status: statusArg,
+        creator: getTaskCreator(),
+        aiGenerated: false
+    };
+}
+
+/**
+ * Returns the creator info for a task created through the board UI.
+ * External tasks get their creator written by the n8n agent instead.
+ * @returns {Object} The creator object with type, name and contactId
+ */
+function getTaskCreator() {
+    const user = window.currentUser;
+    return {
+        type: "member",
+        name: user?.name ?? "Guest",
+        contactId: user?.id ?? ""
     };
 }
 
@@ -300,6 +316,8 @@ function getTaskCategoryLabelColor(category) {
             return "#0038FF";
         case "Technical Task":
             return "#1FD7C1";
+        default:
+            return "#2A3647";
     }
 }
 

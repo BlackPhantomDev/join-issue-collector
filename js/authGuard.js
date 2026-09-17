@@ -39,7 +39,7 @@ async function handleAuthenticatedUser(user, path) {
   if (!snapshot.val()) return;
   const { contactId } = snapshot.val();
   const contactSnap = await get(ref(db, `contacts/${contactId}`));
-  window.currentUser = contactSnap.val();
+  window.currentUser = { ...contactSnap.val(), id: contactId };
   renderUserMenue();
   if (path.includes("login.html")) {
     window.location.href = "./summary.html";

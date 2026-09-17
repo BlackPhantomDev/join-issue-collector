@@ -364,15 +364,19 @@ async function getToDoTemplate(
 function getDialogBoardTemplate(element, assignedContacts, subtasks) {
   return `
     <header>
-        <div class="flex-sb">     
-            <span class="category-badge" style="background-color:${element["categoryLabelColor"]}">${element["category"]}</span>
+        <div class="flex-sb">
+            <div class="dialog-badges">
+                <span class="category-badge" style="background-color:${element["categoryLabelColor"]}">${element["category"]}</span>
+                ${getAiTicketBadgeTemplate(element)}
+            </div>
             <button onclick="closeDialogBoard('${element.status}')">✕</button>
-        </div> 
+        </div>
         <h2>${element.title}</h2>
     </header>
     <main>
         <p>${element.description}</p>
-        <p><span>Due date:</span><span>${formatDate(element.dueDate)}</span></p>      
+        ${getCreatorTemplate(element.creator)}
+        <p><span>Due date:</span><span>${formatDate(element.dueDate)}</span></p>
         <p>
             <span>Priority:</span>
             <span>${capitalize(element["priority"])} <img src="./assets/icons/priority-${element["priority"]}.svg" /></span>
@@ -402,6 +406,81 @@ function getDialogBoardTemplate(element, assignedContacts, subtasks) {
   `;
 }
 
+
+/**
+ * Returns the HTML template for the "AI generated" hint in the task dialog header.
+ * Renders nothing for tasks that were not created by the n8n agent.
+ * @param {Object} element - The task object
+ * @returns {string} HTML string of the AI badge or an empty string
+ */
+function getAiTicketBadgeTemplate(element) {
+  if (!element.aiGenerated) return "";
+  return `
+    <span class="ai-badge">
+        <img src="./assets/icons/ai-ticket.svg" alt="AI icon"><span>Ai-generated ticket</span>
+    </span>`;
+}
+
+/**
+ * Label and icon per channel an external task can come in through.
+ * Extend this when the n8n agent starts reading from another source.
+ */
+const CREATOR_SOURCES = {
+  email: { label: "E-Mail", icon: "link-mail.svg" },
+};
+
+/**
+ * Returns the HTML template for the creator row in the task dialog.
+ * Renders nothing for tasks created before the creator field existed.
+ * @param {Object} creator - The creator object {type, name, source, contactId, email}
+ * @returns {string} HTML string of the creator row or an empty string
+ */
+function getCreatorTemplate(creator) {
+  if (!creator) return "";
+  const isExtern = creator.type === "extern";
+  const label = isExtern ? "Extern" : "Member";
+  const icon = isExtern ? "creator-extern.svg" : "creator-member.svg";
+  return `
+    <p class="creator-row">
+        <span>Creator:</span>
+        <span class="creator-badge creator-badge-${isExtern ? "extern" : "member"}">
+            <img src="./assets/icons/${icon}" alt="${label} icon">${label}
+        </span>
+        <span class="creator-name">${creator.name}</span>
+        ${getCreatorActionTemplate(creator, isExtern)}
+    </p>`;
+}
+
+/**
+ * Returns the HTML template for the creator action.
+ * Members link to their contact profile, external creators show the channel
+ * their task came in through, linked when an address is available.
+ * @param {Object} creator - The creator object
+ * @param {boolean} isExtern - Whether the creator is external
+ * @returns {string} HTML string of the action or an empty string
+ */
+function getCreatorActionTemplate(creator, isExtern) {
+  if (!isExtern) return getCreatorProfileTemplate(creator);
+  const source = CREATOR_SOURCES[creator.source];
+  if (!source) return "";
+  const content = `<img src="./assets/icons/${source.icon}" alt="${source.label} icon">${source.label}`;
+  if (creator.source === "email" && creator.email) {
+    return `<a class="creator-action" href="mailto:${creator.email}">${content}</a>`;
+  }
+  return `<span class="creator-action">${content}</span>`;
+}
+
+/**
+ * Returns the HTML template for the profile link of an internal creator.
+ * @param {Object} creator - The creator object
+ * @returns {string} HTML string of the profile link or an empty string
+ */
+function getCreatorProfileTemplate(creator) {
+  if (!creator.contactId) return "";
+  return `<a class="creator-action" href="./contacts.html?contact=${creator.contactId}">
+            <img src="./assets/icons/link-profile.svg" alt="Profile icon">Profil
+        </a>`;
+}
 
 /**
  * Returns the HTML template for an assigned contact in the task dialog.

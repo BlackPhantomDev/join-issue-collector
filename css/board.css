@@ -406,6 +406,88 @@ dialog#openDialogBoard p:has(img) {
   gap: 8px;
 }
 
+.dialog-badges {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-width: 0;
+}
+
+.ai-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 14px;
+  white-space: nowrap;
+}
+
+.ai-badge span {
+  background: linear-gradient(90deg, #9327ff 0%, #2ea1dc 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+.ai-badge img {
+  width: 16px;
+  height: 16px;
+}
+
+dialog#openDialogBoard .creator-row {
+  align-items: center;
+  gap: 8px;
+}
+
+.creator-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 2px 8px;
+  border-radius: var(--border-radius);
+  font-size: 14px;
+  white-space: nowrap;
+}
+
+.creator-badge img {
+  width: 14px;
+  height: 14px;
+}
+
+.creator-badge-member {
+  background-color: #92FFBC;
+  color: #0B3681;
+}
+
+.creator-badge-extern {
+  background-color: #EBFC88;
+  color: #0B3681;
+}
+
+.creator-name {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.creator-action {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  margin-left: auto;
+  font-size: 14px;
+  color: var(--menu-color);
+  white-space: nowrap;
+}
+
+a.creator-action:hover {
+  color: var(--highligted-color);
+}
+
+.creator-action img {
+  width: 14px;
+  height: 14px;
+}
+
 .dialog-gap {
   margin-top: 24px;
 }
