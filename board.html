@@ -24,7 +24,7 @@
             <img src="./assets/icons/search.svg" class="search-icon" />
           </button>
         </div>
-        <button class="primary-btn add-task-btn" onclick="openAddTaskDialog('toDo')">
+        <button class="primary-btn add-task-btn" onclick="openAddTaskDialog('triage')">
           Add task +
         </button>
       </div>
@@ -33,7 +33,7 @@
     <section class="board-bar-mobile">
       <div id="board-header">
         <h1>Board</h1>
-        <button class="add-task-btn-mobile" onclick="openAddTaskDialog('toDo')">+</button>
+        <button class="add-task-btn-mobile" onclick="openAddTaskDialog('triage')">+</button>
       </div>
       <div class="search-wrapper">
         <div class="search-input-group">
@@ -48,6 +48,25 @@
     </section>
 
     <section class="progress-board">
+      <div class="board-task">
+        <div class="board-task-header">
+          <h4>Triage</h4>
+          <button class="plus-btn" onclick="openAddTaskDialog('triage')">+</button>
+        </div>
+        <div class="board-task-body" data-column="triage">
+          <button class="scroll-arrow arrow-up hidden" data-target="triage" onclick="scrollColumn('triage', -1)">
+            <svg width="16" height="16" viewBox="0 0 16 16"><polyline points="2,11 8,5 14,11" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          </button>
+          <div class="no-tasks-placeholder hidden" id="placeholder-triage">
+            <p class="p-no-task">No Tasks in triage</p>
+          </div>
+          <div id="triage" class="task-cards"></div>
+          <button class="scroll-arrow arrow-down hidden" data-target="triage" onclick="scrollColumn('triage', 1)">
+            <svg width="16" height="16" viewBox="0 0 16 16"><polyline points="2,5 8,11 14,5" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          </button>
+        </div>
+      </div>
+
       <div class="board-task">
         <div class="board-task-header">
           <h4>To do</h4>

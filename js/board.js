@@ -1,8 +1,10 @@
 let currentEditTaskId = null;
 let tasks = [];
 
-const COLUMNS = ["toDo", "inProgress", "await", "done"];
+const COLUMNS = ["triage", "toDo", "inProgress", "await", "done"];
+const PRIORITIES = ["urgent", "medium", "low"];
 const COLUMN_LABELS = {
+  triage: "Triage",
   toDo: "To-do",
   inProgress: "In progress",
   await: "Await feedback",
@@ -28,7 +30,45 @@ async function initBoard(site) {
  */
 async function initTasks() {
   const data = await loadData("/tasks");
-  tasks = Object.entries(data).map(([id, task]) => ({ ...task, id }));
+  tasks = Object.entries(data ?? {}).map(([id, task]) =>
+    normalizeTask(id, task),
+  );
+}
+
+/**
+ * Converts a Firebase value into a plain array.
+ * Firebase stores sparse arrays as objects and the n8n agent may omit the field.
+ * @param {Object[]|Object|undefined} value - The raw value from Firebase
+ * @returns {Object[]} The value as an array
+ */
+function normalizeList(value) {
+  if (!value) return [];
+  return Array.isArray(value) ? value : Object.values(value);
+}
+
+/**
+ * Fills in the defaults for a task loaded from Firebase.
+ * Tasks written by the n8n agent can miss fields the add-task form always sets,
+ * so every task reaching the board has the same shape.
+ * @param {string} id - The Firebase key of the task
+ * @param {Object} task - The raw task object from Firebase
+ * @returns {Object} The normalized task object
+ */
+function normalizeTask(id, task) {
+  return {
+    ...task,
+    id,
+    title: task.title ?? "Untitled task",
+    description: task.description ?? "",
+    category: task.category ?? "Technical Task",
+    categoryLabelColor:
+      task.categoryLabelColor ?? getTaskCategoryLabelColor(task.category),
+    priority: PRIORITIES.includes(task.priority) ? task.priority : "medium",
+    status: COLUMNS.includes(task.status) ? task.status : "triage",
+    assignedTo: normalizeList(task.assignedTo),
+    subtasks: normalizeList(task.subtasks),
+    aiGenerated: task.aiGenerated === true,
+  };
 }
 
 /**
@@ -36,10 +76,7 @@ async function initTasks() {
  * @returns {Promise<void>}
  */
 async function renderAll() {
-  await renderSection("toDo");
-  await renderSection("inProgress");
-  await renderSection("await");
-  await renderSection("done");
+  for (const section of COLUMNS) await renderSection(section);
   updateNoTaskPlaceholders();
   updateScrollArrows();
 }
@@ -335,9 +372,7 @@ async function findTask() {
 }
 
 async function renderFilteredTasks(filteredTasks) {
-  const sections = ["toDo", "inProgress", "await", "done"];
-
-  for (const section of sections) {
+  for (const section of COLUMNS) {
     const container = document.getElementById(section);
     container.innerHTML = "";
 
@@ -374,7 +409,7 @@ async function toggleSubtaskEdit(subtaskIndex, isCompleted, taskId) {
 }
 
 function checkIfSubtasksAvaiableEdit(subtasks, taskID) {
-  if (subtasks) {
+  if (subtasks && subtasks.length) {
     return subtasks
       .map((s, index) =>
         getSubtasksTemplate(s, taskID, index, "toggleSubtaskEdit"),
