@@ -126,6 +126,7 @@ function createContactItem(contact) {
   const initials = getInitials(contact.name);
   const item = document.createElement("div");
   item.className = "contact-item";
+  item.dataset.contactId = contact.id;
   item.innerHTML = getContactItemTemplate(contact, initials, contact.avatarColor);
   item.addEventListener("click", (event) => openContactDetail(contact, event));
   return item;
@@ -190,9 +191,24 @@ async function loadContacts() {
       id,
     }));
     renderContacts(contacts);
+    openContactFromUrl();
   } catch (error) {
     console.error("Fehler beim Laden der Kontakte:", error);
   }
+}
+
+/**
+ * Opens a contact detail view directly if a contact ID is passed as URL parameter.
+ * Used by the "Profil" link in the task dialog.
+ * @returns {void}
+ */
+function openContactFromUrl() {
+  const contactId = new URLSearchParams(location.search).get("contact");
+  if (!contactId) return;
+  const item = document.querySelector(
+    `.contact-item[data-contact-id="${contactId}"]`,
+  );
+  if (item) item.click();
 }
 
 document.addEventListener("DOMContentLoaded", loadContacts);
