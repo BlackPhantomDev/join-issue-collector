@@ -122,6 +122,12 @@
   transition: all 0.1s ease-in;
 }
 
+#create-request-btn a {
+  font-family: OpenSans;
+  font-size: 22px;
+  color: white;
+}
+
 #create-request-btn:hover {
   background-color: var(--highligted-color);
   border-color: var(--highligted-color);
