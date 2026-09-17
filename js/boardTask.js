@@ -41,8 +41,7 @@ async function deleteTask(id) {
     await deleteData(`/tasks/${id}`);
     showMessage("Task wurde gelöscht");
     document.getElementById("openDialogBoard").close();
-    const data = await loadData("/tasks");
-    tasks = Object.entries(data).map(([id, task]) => ({ ...task, id }));
+    await initTasks();
     renderAll();
   } catch (error) {}
 }
@@ -67,10 +66,10 @@ async function getSubtaskData(element) {
  */
 async function getAmountSolvedSubtasks(taskID) {
   const task = await loadData("/tasks/" + taskID);
-  if (task.subtasks === undefined) return 0;
+  const subtasks = normalizeList(task?.subtasks);
   let amount = 0;
-  for (let i = 0; i < task.subtasks.length; i++) {
-    if (task.subtasks[i]["completed"] == true) amount++;
+  for (let i = 0; i < subtasks.length; i++) {
+    if (subtasks[i]["completed"] == true) amount++;
   }
   return String(amount);
 }
@@ -82,9 +81,7 @@ async function getAmountSolvedSubtasks(taskID) {
  */
 async function getNumberOfSubtasks(taskID) {
   const task = await loadData("/tasks/" + taskID);
-  if (task.subtasks === undefined) return 0;
-
-  return task.subtasks.length;
+  return normalizeList(task?.subtasks).length;
 }
 
 /**
@@ -167,7 +164,9 @@ function calcSubtaskProgress(solved, total) {
  * @returns {string} The formatted date string in DD/MM/YYYY format
  */
 function formatDate(date) {
+  if (!date) return "-";
   const [year, month, day] = date.split("-");
+  if (!day) return date;
   return `${day}/${month}/${year}`;
 }
 
@@ -201,7 +200,7 @@ function checkIfSubtaskActive(subtaskCompleted) {
  * @returns {string} HTML string of all subtasks or fallback message
  */
 function checkIfSubtasksAvaiable(subtasks, taskID) {
-  if (subtasks) {
+  if (subtasks && subtasks.length) {
     return subtasks
       .map((s, index) => getSubtasksTemplate(s, taskID, index))
       .join("");
