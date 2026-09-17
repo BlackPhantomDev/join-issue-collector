@@ -37,27 +37,44 @@
 
       <section id="stakeholder-intro">
         <div id="stakeholder-intro-text">
-          <h2>
-            Easily create a ticket by sending an email — no extra steps needed.
-          </h2>
-          <p>
-            On this platform, you can submit your feature requests via email.
-            Our AI system will automatically generate a ticket with a deadline
-            and priority level.
-          </p>
-          <p>
-            A total of 10 requests can be created per day. After this limit,
-            emails can still be sent, but they will be manually reviewed by our
-            team instead of generating AI tickets.
-          </p>
-          <button class="btn" id="create-request-btn">
-            <a href="mailto:join@siegristdigital.ch"> Create Email Request </a>
-            <img src="./assets/icons/check.svg" alt="" />
-          </button>
-          <p id="request-address">
-            Or write directly to
-            <a href="mailto:join@siegristdigital.ch">join@siegristdigital.ch</a>
-          </p>
+          <div id="request-open">
+            <h2>
+              Easily create a ticket by sending an email — no extra steps
+              needed.
+            </h2>
+            <p>
+              On this platform, you can submit your feature requests via email.
+              Our AI system will automatically generate a ticket with a deadline
+              and priority level.
+            </p>
+            <p>
+              A total of 10 requests can be created per day. After this limit,
+              emails can still be sent, but they will be manually reviewed by
+              our team instead of generating AI tickets.
+            </p>
+            <button class="btn request-btn" id="create-request-btn">
+              <a href="mailto:join@siegristdigital.ch"> Create Email Request </a>
+              <img src="./assets/icons/check.svg" alt="" />
+            </button>
+            <p id="request-address">
+              Or write directly to
+              <a href="mailto:join@siegristdigital.ch">join@siegristdigital.ch</a>
+            </p>
+          </div>
+
+          <div id="request-limit" hidden>
+            <p id="limit-notice">
+              The daily 10-request limit has been reached!
+            </p>
+            <p>
+              Need more? No worries — you can still send emails, but our team
+              will review them manually instead of using AI to create tickets.
+            </p>
+            <button class="btn request-btn" id="send-email-btn">
+              <a href="mailto:join@siegristdigital.ch"> Send an email </a>
+              <img src="./assets/icons/check.svg" alt="" />
+            </button>
+          </div>
         </div>
 
         <img
@@ -78,5 +95,7 @@
     <script src="./script.js"></script>
     <script src="./js/templates.js"></script>
     <script type="module" src="./js/authService.js"></script>
+    <script type="module" src="./js/database.js"></script>
+    <script type="module" src="./js/stakeholder.js"></script>
   </body>
 </html>
