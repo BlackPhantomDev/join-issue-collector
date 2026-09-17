@@ -1,0 +1,78 @@
+<!doctype html>
+<html lang="de">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Join | Create request</title>
+    <script type="module" src="./js/authGuard.js"></script>
+    <link rel="stylesheet" href="/main.css" />
+    <link
+      rel="shortcut icon"
+      href="./assets/img/logo-light.svg"
+      type="image/x-icon"
+    />
+  </head>
+
+  <body id="stakeholder-body">
+    <header id="stakeholder-header">
+      <img
+        src="./assets/img/logo-dark.svg"
+        alt="Join logo"
+        id="stakeholder-logo"
+      />
+      <div id="stakeholder-header-bar">
+        <a href="./index.html" id="stakeholder-back" aria-label="Back">
+          <img src="./assets/icons/arrow-back-dark.svg" alt="" />
+        </a>
+        <p id="request-counter">
+          <strong id="requests-used">0</strong> of
+          <strong id="requests-limit">10</strong>
+          <span class="counter-label">requests used today</span>
+        </p>
+      </div>
+    </header>
+
+    <main id="stakeholder-main">
+      <h1>Welcome</h1>
+
+      <section id="stakeholder-intro">
+        <div id="stakeholder-intro-text">
+          <h2>
+            Easily create a ticket by sending an email — no extra steps needed.
+          </h2>
+          <p>
+            On this platform, you can submit your feature requests via email.
+            Our AI system will automatically generate a ticket with a deadline
+            and priority level.
+          </p>
+          <p>
+            A total of 10 requests can be created per day. After this limit,
+            emails can still be sent, but they will be manually reviewed by our
+            team instead of generating AI tickets.
+          </p>
+          <button class="btn" id="create-request-btn">
+            Create Email Request
+            <img src="./assets/icons/check.svg" alt="" />
+          </button>
+        </div>
+
+        <img
+          src="./assets/img/stakeholder-illustration.svg"
+          alt="Person creating tickets on a task board"
+          id="stakeholder-illustration"
+        />
+      </section>
+    </main>
+
+    <footer>
+      <div id="stakeholder-privacy" class="privacy">
+        <a href="./privacy.html">Privacy Policy</a>
+        <a href="./legal.html">Legal notice</a>
+      </div>
+    </footer>
+
+    <script src="./script.js"></script>
+    <script src="./js/templates.js"></script>
+    <script type="module" src="./js/authService.js"></script>
+  </body>
+</html>
