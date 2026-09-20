@@ -12,6 +12,7 @@ function getSummaryCounts(tasks) {
     feedbackCount: tasks.filter((t) => t.status === "await").length,
     boardCount: tasks.length,
     urgentCount: urgentTasks.length,
+    emailCount: tasks.filter((t) => t.aiGenerated === true).length,
     deadline: getNextDeadline(urgentTasks),
   };
 }
@@ -27,6 +28,7 @@ function renderSummaryElements(counts) {
   document.getElementById("feedback_count").textContent = counts.feedbackCount;
   document.getElementById("board_count").textContent = counts.boardCount;
   document.getElementById("urgent_count").textContent = counts.urgentCount;
+  document.getElementById("email_count").textContent = counts.emailCount;
   document.getElementById("deadline").textContent = counts.deadline;
 }
 

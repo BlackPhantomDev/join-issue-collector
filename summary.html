@@ -116,23 +116,36 @@
             </div>
           </div>
 
-          <div
-            class="summary_bubble"
-            id="deadline-bubble"
-            onclick="window.location.href = './board.html'"
-          >
-          <div id="all-deadlines-counter">
-            <img src="./assets/icons/urgent_icon.svg" />
-            <div class="summary_counter">
-              <div id="urgent_count"></div>
-              <a>Urgent</a>
+          <div class="summary_row_middle">
+            <div
+              class="summary_bubble"
+              id="deadline-bubble"
+              onclick="window.location.href = './board.html'"
+            >
+              <div id="all-deadlines-counter">
+                <img src="./assets/icons/urgent_icon.svg" />
+                <div class="summary_counter">
+                  <div id="urgent_count"></div>
+                  <a>Urgent</a>
+                </div>
+              </div>
+              <div class="line"></div>
+              <div class="summary_counter">
+                <div id="deadline"></div>
+                <a>Upcoming Deadline</a>
+              </div>
             </div>
-          </div>
-          <div class="line"></div>
-          <div class="summary_counter">
-            <div id="deadline"></div>
-            <a>Upcoming Deadline</a>
-          </div>
+
+            <div
+              class="summary_bubble"
+              id="email-requests-bubble"
+              onclick="window.location.href = './board.html'"
+            >
+              <div class="summary_counter">
+                <div id="email_count"></div>
+                <a>Email requests</a>
+              </div>
+            </div>
           </div>
 
           <div class="summary_row_last">
