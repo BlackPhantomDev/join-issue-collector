@@ -1,0 +1,167 @@
+{
+  "name": "Ticket movement",
+  "nodes": [
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "minutes",
+              "minutesInterval": 1
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.4,
+      "position": [
+        0,
+        0
+      ],
+      "id": "7c65f3ec-60c0-4028-9337-6f86f0952d18",
+      "name": "Schedule Trigger"
+    },
+    {
+      "parameters": {
+        "url": "https://join-backend-635a8-default-rtdb.europe-west1.firebasedatabase.app/notifications.json",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "googleApi",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.5,
+      "position": [
+        224,
+        0
+      ],
+      "id": "5e354e57-49d5-4966-9655-fa89cadf348e",
+      "name": "GET Notification from RTDB",
+      "credentials": {
+        "googleApi": {
+          "id": "gOdSO7heKJ3INtfN",
+          "name": "Google Service Account account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "/**\n * Anzeigenamen der Board-Spalten. Ohne dieses Mapping stünde der interne\n * Schlüssel in der E-Mail, also \"inProgress\" statt \"In progress\".\n */\nconst COLUMN_LABELS = {\n  triage:     'Triage',\n  toDo:       'To do',\n  inProgress: 'In progress',\n  await:      'Await feedback',\n  done:       'Done',\n};\n\n/**\n * Zerlegt die Benachrichtigungs-Queue aus der RTDB in einzelne n8n-Items.\n *\n * Das Board legt beim Verschieben eines Tasks einen Eintrag unter\n * /notifications ab. Firebase liefert dort ein Objekt, dessen Schlüssel die\n * Push-IDs sind; der Schlüssel wird als \"key\" durchgereicht, weil der\n * nachgelagerte DELETE-Node den Eintrag darüber wieder entfernt.\n *\n * Ist die Queue leer, antwortet Firebase mit null und n8n verpackt das als\n * { data: null }. Beide Formen müssen zu einem leeren Ergebnis führen, sonst\n * liefe der Versand auf einem Pseudo-Eintrag.\n *\n * Einträge ohne Empfängeradresse werden verworfen: sie stammen aus Tasks,\n * deren Ersteller keine Adresse hinterlegt hat, und wären nicht zustellbar.\n *\n * @returns {Array<{json: {key: string, title: string, from: string, to: string, name: string, email: string}}>}\n */\nconst raw = $input.first().json ?? {};\n\n// Leere Queue in beiden Ausprägungen abfangen\nconst queue = 'data' in raw && raw.data === null ? {} : raw;\n\nreturn Object.entries(queue)\n  .filter(([, entry]) => entry && typeof entry === 'object')\n  .map(([key, entry]) => ({\n    json: {\n      key,\n      title: entry.title,\n      from:  COLUMN_LABELS[entry.from] ?? entry.from,\n      to:    COLUMN_LABELS[entry.to]   ?? entry.to,\n      name:  entry.recipient?.name  ?? '',\n      email: entry.recipient?.email ?? '',\n    },\n  }))\n  .filter(item => item.json.email);\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        448,
+        0
+      ],
+      "id": "4259ad7b-54fd-4592-b4cb-008351890286",
+      "name": "Split Queue"
+    },
+    {
+      "parameters": {
+        "fromEmail": "no-reply@siegristdigital.ch",
+        "toEmail": "={{ $json.email }}",
+        "subject": "=Your request \"{{ $json.title }}\" is now {{ $json.to }}",
+        "html": "=Hi {{ $json.name || 'there' }},\n<br><br>\nyour request \"{{ $json.title }}\" moved from <i>\"{{ $json.from }}\"</i> to <i>\"{{ $json.to }}\"</i>.\n<br><br>\nWe will let you know as soon as it progresses further.\n<br><br>\nBest regards<br>\nThe Join team\n",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.emailSend",
+      "typeVersion": 2.1,
+      "position": [
+        672,
+        0
+      ],
+      "id": "f08067ba-39d8-4c88-8fbc-01faf9c6437f",
+      "name": "Send an Email",
+      "webhookId": "42ceda5a-61f8-4fb7-856b-4c824b24a9b7",
+      "credentials": {
+        "smtp": {
+          "id": "6HAh808U2Yu9Qrlp",
+          "name": "SMTP account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "method": "DELETE",
+        "url": "=https://join-backend-635a8-default-rtdb.europe-west1.firebasedatabase.app/notifications/{{ $('Split Queue').item.json.key }}.json",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "googleApi",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.5,
+      "position": [
+        896,
+        0
+      ],
+      "id": "4287f8b6-1267-4ef4-935f-b0f86bb020e3",
+      "name": "HTTP Request",
+      "credentials": {
+        "googleApi": {
+          "id": "gOdSO7heKJ3INtfN",
+          "name": "Google Service Account account"
+        }
+      }
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Schedule Trigger": {
+      "main": [
+        [
+          {
+            "node": "GET Notification from RTDB",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "GET Notification from RTDB": {
+      "main": [
+        [
+          {
+            "node": "Split Queue",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Split Queue": {
+      "main": [
+        [
+          {
+            "node": "Send an Email",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Send an Email": {
+      "main": [
+        [
+          {
+            "node": "HTTP Request",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate"
+  },
+  "versionId": "e6f6e3df-1fee-4e60-b952-6a99c288b3e6",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "a8acb594be7d57707b90d3d29c4695b9734d908caaf216a819ede99db3d561b4"
+  },
+  "nodeGroups": [],
+  "id": "TRSiLRgoqIV4ScBj",
+  "tags": []
+}
