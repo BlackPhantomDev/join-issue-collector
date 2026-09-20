@@ -191,12 +191,42 @@ async function moveTaskTo(event, taskId, newStatus) {
   if (oldStatus === newStatus) return;
 
   task.status = newStatus;
+  let saved = false;
   try {
     await putData("/tasks/" + task.id, task);
+    saved = true;
   } catch {
     task.status = oldStatus;
   }
+  if (saved) await queueStatusNotification(task, oldStatus, newStatus);
   await reRenderColumns(oldStatus, newStatus);
+}
+
+/**
+ * Queues an email notification for the creator of a moved task.
+ * n8n polls this queue, sends the mail and removes the entry — the board
+ * itself never talks to n8n, which keeps the workflow server unreachable
+ * from the outside.
+ * @param {Object} task - The moved task
+ * @param {string} from - The column the task was in
+ * @param {string} to - The column the task was moved to
+ * @returns {Promise<void>}
+ */
+async function queueStatusNotification(task, from, to) {
+  const creator = task.creator;
+  if (!creator?.email) return;
+  try {
+    await postData("/notifications", {
+      taskId: task.id,
+      title: task.title,
+      from,
+      to,
+      recipient: { name: creator.name, email: creator.email },
+      at: new Date().toISOString(),
+    });
+  } catch (error) {
+    // A failed notification must never block moving a task.
+  }
 }
 
 /**

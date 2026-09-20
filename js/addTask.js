@@ -258,6 +258,7 @@ function getTaskCreator() {
     return {
         type: "member",
         name: user?.name ?? "Guest",
+        email: user?.email ?? "",
         contactId: user?.id ?? ""
     };
 }
