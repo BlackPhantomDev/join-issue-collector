@@ -161,7 +161,7 @@ function getSidebarGuestTemplate(privacy, legal) {
   return `
         <img src="./assets/img/logo-light.svg" class="logo sidebar_logo" />
         <nav>
-            <a class="nav-link" href="./index.html">
+            <a class="nav-link" href="./login.html">
                 <img src="./assets/icons/login.svg" class="nav-link-icon" />
                 Log In
             </a>
