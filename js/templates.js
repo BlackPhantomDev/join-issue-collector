@@ -268,6 +268,9 @@ function getAddTaskDialogTemplate(status) {
                               <div class="custom-option" onclick="selectCategory(this)" data-value="user-story">
                                   <span>User Story</span>
                               </div>
+                              <div class="custom-option" onclick="selectCategory(this)" data-value="bug-report">
+                                  <span>Bug Report</span>
+                              </div>
                           </div>
                       </div>
                   </div>

@@ -317,6 +317,8 @@ function getTaskCategoryLabelColor(category) {
             return "#0038FF";
         case "Technical Task":
             return "#1FD7C1";
+        case "Bug Report":
+            return "#FF3D00";
         default:
             return "#2A3647";
     }
