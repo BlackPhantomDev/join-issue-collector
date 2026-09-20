@@ -13,7 +13,9 @@ board tickets.
 ### Kanban board
 - Five columns: **Triage**, To do, In progress, Await feedback, Done
 - Create, edit and delete tasks with subtasks, priorities and assignees
-- Move tasks between columns via the move menu on each card
+- Move tasks between columns by dragging them on desktop, or through the move
+  menu on each card — which stays available everywhere and keeps the board
+  usable by keyboard and on touch devices
 - Contact management
 - User authentication via Firebase (including guest access)
 - Responsive design for desktop and mobile
