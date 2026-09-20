@@ -1,0 +1,4 @@
+{
+  "source": { "include": ["script.js", "js/"], "exclude": ["js/firebaseAuth.js"] },
+  "opts": { "destination": "docs", "recurse": true }
+}
