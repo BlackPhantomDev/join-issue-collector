@@ -223,8 +223,8 @@
     },
     {
       "parameters": {
-        "fromEmail": "no-reply@siegristdigital.ch",
-        "toEmail": "info@siegristdigital.ch",
+        "fromEmail": "no-reply@domain.ch",
+        "toEmail": "info@domain.ch",
         "subject": "=New Ticket generated",
         "html": "=Hi, \n<br><br>\nA new AI generated ticket was successfully created and put into the Join Board. \n<br><br>\nCreator: {{ $('PUT to FB').item.json.creator.name }}",
         "options": {}
@@ -247,7 +247,7 @@
     },
     {
       "parameters": {
-        "fromEmail": "no-reply@siegristdigital.ch",
+        "fromEmail": "no-reply@domain.ch",
         "toEmail": "={{ $('Email Trigger (IMAP)').item.json.from }}",
         "subject": "Automated message from Join-Board",
         "html": "=Hello {{ $json.output.creator?.name || $('Email Trigger (IMAP)').item.json.from.replace(/<[^>]*>/, '').trim() || 'there' }}\n\n\n<br><br>\nYour message could not be processed as a task from our System. \n<br><br>\nReason: {{ $json.output.rejectionReason }}\n<br><br>\nHowever, we will process your message and get back to you.\n<br><br>\nBest regards <br>\nThe Join team\n\n",
@@ -271,7 +271,7 @@
     },
     {
       "parameters": {
-        "fromEmail": "no-reply@siegristdigital.ch",
+        "fromEmail": "no-reply@domain.ch",
         "toEmail": "={{ $('Email Trigger (IMAP)').item.json.from }}",
         "subject": "=Re: {{ $('Email Trigger (IMAP)').item.json.subject }}",
         "html": "Hi,<br>\n\nthanks for your request. The daily limit of 10 AI-processed requests\nhas been reached today.\n\n<br><br>\n\nYour email has been received — our team will review it manually instead\nof creating a ticket automatically. There is no need to send it again.\n\n<br><br>\n\nBest regards <br>\nThe Join team",

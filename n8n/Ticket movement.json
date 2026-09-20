@@ -58,7 +58,7 @@
     },
     {
       "parameters": {
-        "fromEmail": "no-reply@siegristdigital.ch",
+        "fromEmail": "no-reply@domain.ch",
         "toEmail": "={{ $json.email }}",
         "subject": "=Your request \"{{ $json.title }}\" is now {{ $json.to }}",
         "html": "=Hi {{ $json.name || 'there' }},\n<br><br>\nyour request \"{{ $json.title }}\" moved from <i>\"{{ $json.from }}\"</i> to <i>\"{{ $json.to }}\"</i>.\n<br><br>\nWe will let you know as soon as it progresses further.\n<br><br>\nBest regards<br>\nThe Join team\n",
