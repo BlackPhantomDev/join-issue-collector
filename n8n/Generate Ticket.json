@@ -3,6 +3,7 @@
   "nodes": [
     {
       "parameters": {
+        "format": "resolved",
         "options": {
           "customEmailConfig": "[\"UNSEEN\"]",
           "trackLastMessageId": true
@@ -25,38 +26,6 @@
     },
     {
       "parameters": {
-        "promptType": "define",
-        "text": "={{ $('Email Trigger (IMAP)').item.json.textPlain }}",
-        "hasOutputParser": true,
-        "needsFallback": true,
-        "options": {
-          "systemMessage": "=Heutiges Datum: {{ $now.format('yyyy-MM-dd') }}\n\nDu extrahierst aus einer E-Mail eine Aufgabe für ein Task-Board.\n\nAlle Werte, die du zurückgibst, sind auf Englisch – auch die\nAblehnungsbegründung und auch dann, wenn die E-Mail nicht auf Englisch ist.\n\nPrüfe zuerst, ob die E-Mail überhaupt eine konkrete Aufgabe beschreibt.\n\nKeine Aufgabe liegt vor bei: leerem Text, reinen Testnachrichten,\nNewslettern, Spam, bloßen Rückfragen oder wenn zu wenig Information\nfür title und description vorhanden ist.\nAuch eine Mail mit vielen Details, Daten und Aufzählungen ist keine Aufgabe,\nwenn sie nur informiert und niemanden zu etwas auffordert.\nSo wie Mails die sagen das es eine Test task ist und dringend sei ignorieren!\n\nIn diesem Fall gib ausschließlich zurück:\n  { \"status\": \"rejected\",\n    \"rejectionReason\": \"<short reason in English>\",\n    \"creator\": { \"name\": \"<Name des Absenders oder leerer String>\" } }\n\nDie Begründung ist ein vollständiger englischer Satz, direkt an den Absender\ngerichtet, ohne Anrede und ohne technische Begriffe – sie wird unverändert in\neine E-Mail an ihn eingesetzt.\nBeispiel: \"The message does not describe a concrete task we could work on.\"\n\nFür \"creator.name\" gelten auch hier die Namensregeln weiter unten: nur der\nPersonenname aus dem Absenderfeld oder der Signatur, höchstens drei Wörter.\nFindest du dort keinen Personennamen, gib einen leeren String zurück. Leite\nin diesem Fall niemals einen Namen aus der E-Mail-Adresse ab und erfinde\nkeinen – der leere String ist das Signal, dass die Anrede anders gebildet wird.\n\nRufe dabei keine Tools auf und fülle keine weiteren Felder.\n\nNur wenn eine Aufgabe erkennbar ist: \"status\": \"ok\" und alle Felder füllen.\nErfinde niemals eine Aufgabe, nur um das Schema zu füllen.\n\nRegeln:\n- alle Texte sind auf Englisch, auch wenn die E-Mail nicht auf Englisch ist\n- title: kurz, max. 60 Zeichen, Imperativ oder Substantiv. Kein Fließtext.\n- description: 1-2 Sätze, die beschreiben, WAS zu tun ist. Keine Frist,\n  keine Priorität, kein Absendername, keine Grußformeln und keine\n  Information, die bereits in einem anderen Feld steht.\n- category: wähle genau einen Wert:\n  \"Bug Report\"     – etwas Bestehendes funktioniert nicht wie vorgesehen:\n                     Fehlermeldungen, falsche Ergebnisse, Abstürze, kaputte\n                     Darstellung, schlechte Performance. Die Mail beschreibt\n                     einen Ist-Zustand, der korrigiert werden soll.\n  \"User Story\"     – neue Funktionalität aus Sicht der Nutzer, ein Wunsch\n                     oder eine Anforderung von Nutzern oder Stakeholdern\n  \"Technical Task\" – Implementierung, Refactoring, Infrastruktur,\n                     Konfiguration oder Arbeit ohne direkt sichtbaren\n                     Nutzen für Endanwender\n  Prüfe \"Bug Report\" zuerst: beschreibt die Mail einen Defekt, ist es ein\n  Bug Report – auch dann, wenn die Behebung technische Arbeit bedeutet oder\n  die Mail konkrete Umsetzungsdetails nennt.\n  Nur wenn kein Defekt vorliegt, entscheide zwischen den anderen beiden.\n  Nennt die Mail dann konkrete technische Umsetzungsdetails, ist es\n  \"Technical Task\", auch wenn ein Nutzen für Endanwender erkennbar ist.\n- priority: \"urgent\" bei expliziter Dringlichkeit oder Frist unter 3 Tagen,\n  \"medium\" bei konkretem Termin, sonst \"low\".\n- dueDate: Format YYYY-MM-DD. Nennt die Mail ein konkretes Datum oder eine\n  relative Frist (\"bis Freitag\", \"in zwei Wochen\"), rechne sie ausgehend vom\n  oben genannten heutigen Datum aus. Wenn keine Frist genannt wird, gib\n  null zurück (kein String, sondern JSON-null).\n- subtasks: Nennt die E-Mail mehrere abgrenzbare Punkte, die zur selben Aufgabe\n  gehören – etwa mehrere betroffene Bereiche, Geräte oder Arbeitsschritte –\n  lege pro Punkt einen Subtask an. Formuliere ihn als Tätigkeit, nicht als\n  Symptom: \"Fix scroll performance on iPad\", nicht \"läuft nicht flüssig\".\n  Beschreibt die Mail nur einen einzigen Punkt, gib ein leeres Array zurück.\n  Erfinde keine Schritte, die nicht in der Mail stehen.\n\n- creator: Der Absender. Für \"name\" nimm ausschließlich den Personennamen,\n  also Vorname und Nachname – nichts weiter.\n  Nicht Teil des Namens und immer weglassen: Abteilungen, Rollen, Jobtitel,\n  Firmennamen, Telefonnummern, Adressen und weitere Signaturzeilen.\n  Steht in der Signatur \"Tobias Frei\" auf einer Zeile und \"DevOps\" auf der\n  nächsten, lautet der Name \"Tobias Frei\".\n  Der Name besteht aus höchstens drei Wörtern.\n  Quelle in dieser Reihenfolge: Klarname im Absenderfeld, sonst erste\n  Signaturzeile.\n  Findest du dort nichts, gilt: bei \"status\": \"ok\" nimm den Teil der Adresse\n  vor dem @-Zeichen, bei \"status\": \"rejected\" gib einen leeren String zurück.\n  Der Absender wird nie sich selbst zugewiesen.\n\n- assignedTo: Werden in der E-Mail Personen namentlich genannt, die die\n  Aufgabe übernehmen sollen, dann rufe IMMER zuerst das Tool \"getContacts\"\n  auf, bevor du antwortest. Ohne diesen Aufruf darfst du assignedTo nicht\n  füllen.\n  Das Tool liefert ein Objekt, dessen Schlüssel die Kontakt-IDs im Format\n  \"contact-<uuid>\" sind und dessen Werte ein Feld \"name\" enthalten.\n  Ordne dann jeden genannten Namen einem Kontakt zu. Eine Zuordnung gilt nur\n  als gültig, wenn sie eindeutig ist: voller Name, oder ein Vorname, der bei\n  genau einem Kontakt vorkommt. Passt ein Name auf mehrere Kontakte oder auf\n  keinen, lass ihn weg.\n  Gib die Treffer als [{\"id\": \"contact-...\"}] zurück, exakt die Schlüssel aus\n  dem Tool-Ergebnis.\n  Wird niemand genannt, rufe das Tool nicht auf und gib ein leeres Array\n  zurück. Erfinde niemals Kontakt-IDs.\n  Der Absender selbst wird nie zugewiesen.\n\nErfinde nichts, was nicht in der Mail steht.\nDisclaimer und Footer ignorierst du vollständig. Aus der Signatur verwendest\ndu ausschließlich den Namen des Absenders.\n"
-        }
-      },
-      "type": "@n8n/n8n-nodes-langchain.agent",
-      "typeVersion": 3.1,
-      "position": [
-        1008,
-        272
-      ],
-      "id": "96e3bdcb-6dbd-40b9-acc8-deb25694c8c4",
-      "name": "AI Agent"
-    },
-    {
-      "parameters": {
-        "jsCode": "const COLORS = {\n  'User Story':     '#0038FF',\n  'Technical Task': '#1FD7C1',\n  'Bug Report':     '#FF3D00',\n};\n\n/**\n * Returns an RFC4122 v4 UUID, falling back to Math.random when the\n * Web Crypto API is unavailable in the sandbox.\n * @returns {string} The generated UUID\n */\nconst uuid = () => (globalThis.crypto?.randomUUID)\n  ? globalThis.crypto.randomUUID()\n  : 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, c => {\n      const r = Math.random() * 16 | 0;\n      return (c === 'x' ? r : (r & 0x3 | 0x8)).toString(16);\n    });\n\n/**\n * Trims a sender name down to a usable display name.\n * Cuts everything after the first separator and keeps at most three words,\n * so signatures and job titles do not end up on the board.\n * @param {string} raw - The name as extracted by the AI agent\n * @returns {string} The cleaned name, or 'Unbekannt' if nothing usable remains\n */\nconst cleanName = (raw) => {\n  const first = String(raw ?? '').split(/[\\n,|/]/)[0].trim();\n  const words = first.split(/\\s+/).slice(0, 3).join(' ');\n  return words || 'Unbekannt';\n};\n\n/**\n * Extracts the bare address from an RFC 5322 From header.\n * Turns 'Ferri Ferrari <ferri@example.com>' into 'ferri@example.com' and\n * passes through headers that already contain only an address.\n * @param {string} raw - The From header of the incoming mail\n * @returns {string} The email address\n */\nconst parseEmail = (raw) => {\n  const from = String(raw ?? '');\n  return (from.match(/<([^>]+)>/)?.[1] ?? from).trim();\n};\n\n// Die Absenderadresse kommt aus dem Trigger, nicht vom Agent: sie steht im\n// Header und soll nicht durch die KI laufen. Sie ist der Empfaenger der\n// Benachrichtigung, wenn der Task spaeter verschoben wird.\nconst mails = $('Email Trigger (IMAP)').all();\n\nreturn items.map((item, index) => {\n  const out = item.json.output;\n  const mail = (mails[index] ?? mails[0])?.json ?? {};\n\n  return {\n    json: {\n      id: `task-${uuid()}`,\n      title: String(out.title ?? '').slice(0, 60),\n      description: out.description,\n      category: out.category,\n      categoryLabelColor: COLORS[out.category] ?? '#8A8A8A',\n      dueDate: out.dueDate || DateTime.now().plus({ days: 30 }).toFormat('yyyy-MM-dd'),\n      priority: out.priority,\n      status: 'triage',\n      assignedTo: (out.assignedTo ?? []).filter(\n        a => typeof a?.id === 'string' && a.id.startsWith('contact-')\n      ),\n      creator: {\n        type: 'extern',\n        source: 'email',\n        name: cleanName(out.creator?.name),\n        email: parseEmail(mail.from)\n      },\n      subtasks: (out.subtasks ?? []).map(s => ({\n        id: `subtask-${uuid()}`,\n        title: s.title,\n        completed: false\n      })),\n      aiGenerated: true\n    }\n  };\n});\n"
-      },
-      "type": "n8n-nodes-base.code",
-      "typeVersion": 2,
-      "position": [
-        1712,
-        272
-      ],
-      "id": "24240ebe-b1cf-4967-bcff-ec9a3d07c3b8",
-      "name": "AI JSON in FB JSON"
-    },
-    {
-      "parameters": {
         "toolDescription": "Liefert alle im Board hinterlegten Kontakte als Objekt. Schlüssel ist die Kontakt-ID im Format contact-<uuid>, der Wert enthält name, email, phone und avatarColor. Nur aufrufen, wenn in der E-Mail eine Person namentlich genannt wird, die die Aufgabe übernehmen soll.",
         "url": "https://join-backend-635a8-default-rtdb.europe-west1.firebasedatabase.app/contacts.json",
         "authentication": "predefinedCredentialType",
@@ -75,287 +44,6 @@
         "googleApi": {
           "id": "gOdSO7heKJ3INtfN",
           "name": "Google Service Account account"
-        }
-      }
-    },
-    {
-      "parameters": {
-        "url": "=https://join-backend-635a8-default-rtdb.europe-west1.firebasedatabase.app/triggerCounter/{{ $today.toFormat('yyyy-MM-dd') }}.json?shallow=true",
-        "authentication": "predefinedCredentialType",
-        "nodeCredentialType": "googleApi",
-        "options": {}
-      },
-      "type": "n8n-nodes-base.httpRequest",
-      "typeVersion": 4.5,
-      "position": [
-        224,
-        512
-      ],
-      "id": "8b2ca06f-f1ce-47ea-b470-fb1cf42d73d6",
-      "name": "GET Trigger Counter",
-      "credentials": {
-        "googleApi": {
-          "id": "gOdSO7heKJ3INtfN",
-          "name": "Google Service Account account"
-        }
-      }
-    },
-    {
-      "parameters": {
-        "jsCode": "/**\n * Prüft, wie viele Slots des Tageslimits bereits verbraucht sind.\n *\n * Erwartet als Eingabe den heutigen Knoten aus /triggerCounter, also\n * GET /triggerCounter/<yyyy-MM-dd>.json?shallow=true. Mit shallow=true\n * liefert Firebase nur die Push-IDs als { \"-Nxyz\": true, ... } — genau das,\n * was zum Zählen gebraucht wird, ohne die Nutzdaten zu übertragen.\n *\n * @returns {Array<{json: {date: string, count: number, limit: number, remaining: number}}>}\n */\nconst LIMIT = 10;\n\nconst raw = $input.first().json ?? {};\n\nconst entries = 'data' in raw && raw.data === null ? {} : raw;\n\nconst count = Object.keys(entries).length;\n\nreturn [{\n  json: {\n    date: $today.toFormat('yyyy-MM-dd'),\n    count,\n    limit: LIMIT,\n    remaining: Math.max(LIMIT - count, 0),\n  },\n}];\n"
-      },
-      "type": "n8n-nodes-base.code",
-      "typeVersion": 2,
-      "position": [
-        448,
-        512
-      ],
-      "id": "c5f98dd9-4ea4-4df2-af4c-376851a63564",
-      "name": "Validate Counter",
-      "alwaysOutputData": true
-    },
-    {
-      "parameters": {
-        "schemaType": "manual",
-        "inputSchema": "={\n  \"type\": \"object\",\n  \"properties\": {\n    \"status\": { \"type\": \"string\", \"enum\": [\"ok\", \"rejected\"] },\n    \"rejectionReason\": {\n      \"type\": \"string\",\n      \"description\": \"Short reason in English, one full sentence addressed to the sender. Inserted verbatim into an email.\"\n    },\n    \"title\": { \"type\": \"string\" },\n    \"description\": { \"type\": \"string\" },\n    \"category\": {\n      \"type\": \"string\",\n      \"enum\": [\"User Story\", \"Technical Task\", \"Bug Report\"]\n    },\n    \"dueDate\": { \"type\": \"string\" },\n    \"priority\": { \"type\": \"string\", \"enum\": [\"low\", \"medium\", \"urgent\"] },\n    \"subtasks\": {\n      \"type\": \"array\",\n      \"items\": {\n        \"type\": \"object\",\n        \"properties\": { \"title\": { \"type\": \"string\" } },\n        \"required\": [\"title\"]\n      }\n    },\n    \"creator\": {\n      \"type\": \"object\",\n      \"properties\": { \"name\": { \"type\": \"string\" } },\n      \"required\": [\"name\"]\n    },\n    \"assignedTo\": {\n      \"type\": \"array\",\n      \"items\": {\n        \"type\": \"object\",\n        \"properties\": { \"id\": { \"type\": \"string\" } },\n        \"required\": [\"id\"]\n      }\n    }\n  },\n  \"required\": [\"status\"]\n}\n"
-      },
-      "type": "@n8n/n8n-nodes-langchain.outputParserStructured",
-      "typeVersion": 1.3,
-      "position": [
-        1296,
-        496
-      ],
-      "id": "ca3a3384-1e07-4f77-9aad-e37d1c8bba38",
-      "name": "Task JSON",
-      "notes": "Set JSON structure for task data"
-    },
-    {
-      "parameters": {
-        "modelName": "models/gemini-3.1-flash-lite",
-        "options": {}
-      },
-      "type": "@n8n/n8n-nodes-langchain.lmChatGoogleGemini",
-      "typeVersion": 1.1,
-      "position": [
-        912,
-        496
-      ],
-      "id": "1e8712b4-9f08-410d-9294-d9ff77a72b52",
-      "name": "Primary",
-      "credentials": {
-        "googlePalmApi": {
-          "id": "kSj9WuaqTI5cUVlq",
-          "name": "Google Gemini(PaLM) Api account"
-        }
-      }
-    },
-    {
-      "parameters": {
-        "modelName": "models/gemini-3.5-flash-lite",
-        "options": {}
-      },
-      "type": "@n8n/n8n-nodes-langchain.lmChatGoogleGemini",
-      "typeVersion": 1.1,
-      "position": [
-        1040,
-        496
-      ],
-      "id": "e463427d-e1ca-47b8-8552-0ae8ecac3b5d",
-      "name": "Fallback",
-      "credentials": {
-        "googlePalmApi": {
-          "id": "kSj9WuaqTI5cUVlq",
-          "name": "Google Gemini(PaLM) Api account"
-        }
-      }
-    },
-    {
-      "parameters": {
-        "method": "PUT",
-        "url": "=https://join-backend-635a8-default-rtdb.europe-west1.firebasedatabase.app/tasks/{{$json.id}}.json",
-        "authentication": "predefinedCredentialType",
-        "nodeCredentialType": "googleApi",
-        "sendBody": true,
-        "specifyBody": "json",
-        "jsonBody": "={{ JSON.stringify($json) }}",
-        "options": {}
-      },
-      "id": "d1dc57d1-c0e1-436d-b0f5-4124385ba5eb",
-      "name": "PUT to FB",
-      "type": "n8n-nodes-base.httpRequest",
-      "typeVersion": 4.2,
-      "position": [
-        1936,
-        272
-      ],
-      "credentials": {
-        "googleApi": {
-          "id": "gOdSO7heKJ3INtfN",
-          "name": "Google Service Account account"
-        }
-      }
-    },
-    {
-      "parameters": {
-        "method": "POST",
-        "url": "=https://join-backend-635a8-default-rtdb.europe-west1.firebasedatabase.app/triggerCounter/{{ $today.toFormat('yyyy-MM-dd') }}.json",
-        "authentication": "predefinedCredentialType",
-        "nodeCredentialType": "googleApi",
-        "sendBody": true,
-        "specifyBody": "json",
-        "jsonBody": "={\n  \"at\": \"{{ $now.toISO() }}\",\n  \"mailUid\": \"{{ $('Email Trigger (IMAP)').item.json.attributes.uid }}\"\n}",
-        "options": {}
-      },
-      "id": "a882bc0c-a696-48de-8547-2ed98c97cc3d",
-      "name": "POST Counter",
-      "type": "n8n-nodes-base.httpRequest",
-      "typeVersion": 4.2,
-      "position": [
-        2384,
-        464
-      ],
-      "credentials": {
-        "googleApi": {
-          "id": "gOdSO7heKJ3INtfN",
-          "name": "Google Service Account account"
-        }
-      }
-    },
-    {
-      "parameters": {
-        "fromEmail": "no-reply@domain.ch",
-        "toEmail": "info@domain.ch",
-        "subject": "=New Ticket generated",
-        "html": "=Hi, \n<br><br>\nA new AI generated ticket was successfully created and put into the Join Board. \n<br><br>\nCreator: {{ $('PUT to FB').item.json.creator.name }}",
-        "options": {}
-      },
-      "type": "n8n-nodes-base.emailSend",
-      "typeVersion": 2.1,
-      "position": [
-        2384,
-        224
-      ],
-      "id": "8b0b6d1f-11b1-4e0c-86d7-0572bec3b52e",
-      "name": "Send an Email",
-      "webhookId": "e27c319b-b355-4c2a-9b51-3424b80cb565",
-      "credentials": {
-        "smtp": {
-          "id": "6HAh808U2Yu9Qrlp",
-          "name": "SMTP account"
-        }
-      }
-    },
-    {
-      "parameters": {
-        "fromEmail": "no-reply@domain.ch",
-        "toEmail": "={{ $('Email Trigger (IMAP)').item.json.from }}",
-        "subject": "Automated message from Join-Board",
-        "html": "=Hello {{ $json.output.creator?.name || $('Email Trigger (IMAP)').item.json.from.replace(/<[^>]*>/, '').trim() || 'there' }}\n\n\n<br><br>\nYour message could not be processed as a task from our System. \n<br><br>\nReason: {{ $json.output.rejectionReason }}\n<br><br>\nHowever, we will process your message and get back to you.\n<br><br>\nBest regards <br>\nThe Join team\n\n",
-        "options": {}
-      },
-      "type": "n8n-nodes-base.emailSend",
-      "typeVersion": 2.1,
-      "position": [
-        1936,
-        512
-      ],
-      "id": "f56092ab-5c14-4787-862b-0d9633a908a1",
-      "name": "Send an Email1",
-      "webhookId": "a5de7ba8-5ab0-49c5-8dd9-16c4e5af782d",
-      "credentials": {
-        "smtp": {
-          "id": "6HAh808U2Yu9Qrlp",
-          "name": "SMTP account"
-        }
-      }
-    },
-    {
-      "parameters": {
-        "fromEmail": "no-reply@domain.ch",
-        "toEmail": "={{ $('Email Trigger (IMAP)').item.json.from }}",
-        "subject": "=Re: {{ $('Email Trigger (IMAP)').item.json.subject }}",
-        "html": "Hi,<br>\n\nthanks for your request. The daily limit of 10 AI-processed requests\nhas been reached today.\n\n<br><br>\n\nYour email has been received — our team will review it manually instead\nof creating a ticket automatically. There is no need to send it again.\n\n<br><br>\n\nBest regards <br>\nThe Join team",
-        "options": {}
-      },
-      "type": "n8n-nodes-base.emailSend",
-      "typeVersion": 2.1,
-      "position": [
-        1088,
-        672
-      ],
-      "id": "4fe9c2da-fa4b-454f-8c6b-ee701f412460",
-      "name": "Send Limit Email",
-      "webhookId": "3ee11fce-e024-4bec-8e49-251f73bfc4d0",
-      "credentials": {
-        "smtp": {
-          "id": "6HAh808U2Yu9Qrlp",
-          "name": "SMTP account"
-        }
-      }
-    },
-    {
-      "parameters": {
-        "authentication": "coreImapAccount",
-        "resource": "email",
-        "operation": "moveEmail",
-        "sourceMailbox": {
-          "__rl": true,
-          "mode": "list",
-          "value": "INBOX"
-        },
-        "emailUid": "={{ $('Email Trigger (IMAP)').item.json.attributes.uid }}",
-        "destinationMailbox": {
-          "__rl": true,
-          "value": "to-edit",
-          "mode": "list",
-          "cachedResultName": "to-edit"
-        }
-      },
-      "type": "n8n-nodes-imap.imap",
-      "typeVersion": 1,
-      "position": [
-        2160,
-        512
-      ],
-      "id": "be5789bd-06fa-4cd4-b9c1-216d381c6b3c",
-      "name": "MoveEmail 2 to-edit",
-      "credentials": {
-        "imap": {
-          "id": "ZZ3GC1Z6GbyHmr9h",
-          "name": "IMAP account"
-        }
-      }
-    },
-    {
-      "parameters": {
-        "authentication": "coreImapAccount",
-        "resource": "email",
-        "operation": "moveEmail",
-        "sourceMailbox": {
-          "__rl": true,
-          "mode": "list",
-          "value": "INBOX"
-        },
-        "emailUid": "={{ $('Email Trigger (IMAP)').item.json.attributes.uid }}",
-        "destinationMailbox": {
-          "__rl": true,
-          "value": "done",
-          "mode": "list",
-          "cachedResultName": "done"
-        }
-      },
-      "type": "n8n-nodes-imap.imap",
-      "typeVersion": 1,
-      "position": [
-        2160,
-        272
-      ],
-      "id": "8b8c3b96-7c84-4a60-9ccf-1e6dafabc71a",
-      "name": "MoveEmail 2 done",
-      "credentials": {
-        "imap": {
-          "id": "ZZ3GC1Z6GbyHmr9h",
-          "name": "IMAP account"
         }
       }
     },
@@ -427,6 +115,319 @@
     },
     {
       "parameters": {
+        "jsCode": "/**\n * Prüft, wie viele Slots des Tageslimits bereits verbraucht sind.\n *\n * Erwartet als Eingabe den heutigen Knoten aus /triggerCounter, also\n * GET /triggerCounter/<yyyy-MM-dd>.json?shallow=true. Mit shallow=true\n * liefert Firebase nur die Push-IDs als { \"-Nxyz\": true, ... } — genau das,\n * was zum Zählen gebraucht wird, ohne die Nutzdaten zu übertragen.\n *\n * @returns {Array<{json: {date: string, count: number, limit: number, remaining: number}}>}\n */\nconst LIMIT = 10;\n\nconst raw = $input.first().json ?? {};\n\nconst entries = 'data' in raw && raw.data === null ? {} : raw;\n\nconst count = Object.keys(entries).length;\n\nreturn [{\n  json: {\n    date: $today.toFormat('yyyy-MM-dd'),\n    count,\n    limit: LIMIT,\n    remaining: Math.max(LIMIT - count, 0),\n  },\n}];\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        448,
+        512
+      ],
+      "id": "c5f98dd9-4ea4-4df2-af4c-376851a63564",
+      "name": "Check Daily Limit",
+      "alwaysOutputData": true
+    },
+    {
+      "parameters": {
+        "url": "=https://join-backend-635a8-default-rtdb.europe-west1.firebasedatabase.app/triggerCounter/{{ $today.toFormat('yyyy-MM-dd') }}.json?shallow=true",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "googleApi",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.5,
+      "position": [
+        224,
+        512
+      ],
+      "id": "8b2ca06f-f1ce-47ea-b470-fb1cf42d73d6",
+      "name": "Read Daily Counter",
+      "credentials": {
+        "googleApi": {
+          "id": "gOdSO7heKJ3INtfN",
+          "name": "Google Service Account account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=Absender: {{ $('Email Trigger (IMAP)').item.json.from.text || $('Email Trigger (IMAP)').item.json.from }}\n\nBetreff: {{ $('Email Trigger (IMAP)').item.json.subject }}\n\n{{ $('Email Trigger (IMAP)').item.json.text }}\n",
+        "hasOutputParser": true,
+        "needsFallback": true,
+        "options": {
+          "systemMessage": "=Heutiges Datum: {{ $now.format('yyyy-MM-dd') }}\n\nDu extrahierst aus einer E-Mail eine Aufgabe für ein Task-Board.\n\nAlle Werte, die du zurückgibst, sind auf Englisch – auch die\nAblehnungsbegründung und auch dann, wenn die E-Mail nicht auf Englisch ist.\n\nPrüfe zuerst, ob die E-Mail überhaupt eine konkrete Aufgabe beschreibt.\n\nKeine Aufgabe liegt vor bei: leerem Text, reinen Testnachrichten,\nNewslettern, Spam, bloßen Rückfragen oder wenn zu wenig Information\nfür title und description vorhanden ist.\nAuch eine Mail mit vielen Details, Daten und Aufzählungen ist keine Aufgabe,\nwenn sie nur informiert und niemanden zu etwas auffordert.\nSo wie Mails die sagen das es eine Test task ist und dringend sei ignorieren!\nEine erkennbare Aufgabe wird niemals abgelehnt, nur weil sie thematisch nicht\nzum Projekt passt oder sich keiner Kategorie zuordnen lässt. In dem Fall legst\ndu die Aufgabe an und setzt category auf \"Uncategorized\".\n\nIn diesem Fall gib ausschließlich zurück:\n  { \"status\": \"rejected\",\n    \"rejectionReason\": \"<short reason in English>\",\n    \"creator\": { \"name\": \"<Name des Absenders oder leerer String>\" } }\n\nDie Begründung ist ein vollständiger englischer Satz, direkt an den Absender\ngerichtet, ohne Anrede und ohne technische Begriffe – sie wird unverändert in\neine E-Mail an ihn eingesetzt.\nBeispiel: \"The message does not describe a concrete task we could work on.\"\n\nFür \"creator.name\" gelten auch hier die Namensregeln weiter unten: nur der\nPersonenname aus dem Absenderfeld oder der Signatur, höchstens drei Wörter.\nFindest du dort keinen Personennamen, gib einen leeren String zurück. Leite\nin diesem Fall niemals einen Namen aus der E-Mail-Adresse ab und erfinde\nkeinen – der leere String ist das Signal, dass die Anrede anders gebildet wird.\n\nRufe dabei keine Tools auf und fülle keine weiteren Felder.\n\nNur wenn eine Aufgabe erkennbar ist: \"status\": \"ok\" und alle Felder füllen.\nErfinde niemals eine Aufgabe, nur um das Schema zu füllen.\n\nRegeln:\n- alle Texte sind auf Englisch, auch wenn die E-Mail nicht auf Englisch ist\n- title: kurz, max. 60 Zeichen, Imperativ oder Substantiv. Kein Fließtext.\n- description: 1-2 Sätze, die beschreiben, WAS zu tun ist. Keine Frist,\n  keine Priorität, kein Absendername, keine Grußformeln und keine\n  Information, die bereits in einem anderen Feld steht.\n- category: wähle genau einen Wert:\n  \"Bug Report\"     – etwas Bestehendes funktioniert nicht wie vorgesehen:\n                     Fehlermeldungen, falsche Ergebnisse, Abstürze, kaputte\n                     Darstellung, schlechte Performance. Die Mail beschreibt\n                     einen Ist-Zustand, der korrigiert werden soll.\n  \"User Story\"     – neue Funktionalität aus Sicht der Nutzer, ein Wunsch\n                     oder eine Anforderung von Nutzern oder Stakeholdern\n  \"Technical Task\" – Implementierung, Refactoring, Infrastruktur,\n                     Konfiguration oder Arbeit ohne direkt sichtbaren\n                     Nutzen für Endanwender\n  \"Uncategorized\"  – es ist eine Aufgabe, passt aber in keine der drei\n                     Kategorien, etwa weil sie nichts mit dem Projekt zu tun hat\n  Prüfe \"Bug Report\" zuerst: beschreibt die Mail einen Defekt, ist es ein\n  Bug Report – auch dann, wenn die Behebung technische Arbeit bedeutet oder\n  die Mail konkrete Umsetzungsdetails nennt.\n  Nur wenn kein Defekt vorliegt, entscheide zwischen User Story und\n  Technical Task. Nennt die Mail dabei konkrete technische Umsetzungsdetails,\n  ist es \"Technical Task\", auch wenn ein Nutzen für Endanwender erkennbar ist.\n  Passt nichts davon, nimm \"Uncategorized\" – rate nicht.\n- priority: \"urgent\" bei expliziter Dringlichkeit oder Frist unter 3 Tagen,\n  \"medium\" bei konkretem Termin, sonst \"low\".\n- dueDate: Format YYYY-MM-DD. Nennt die Mail ein konkretes Datum oder eine\n  relative Frist (\"bis Freitag\", \"in zwei Wochen\"), rechne sie ausgehend vom\n  oben genannten heutigen Datum aus. Wenn keine Frist genannt wird, gib\n  null zurück (kein String, sondern JSON-null).\n- subtasks: Nennt die E-Mail mehrere abgrenzbare Punkte, die zur selben Aufgabe\n  gehören – etwa mehrere betroffene Bereiche, Geräte oder Arbeitsschritte –\n  lege pro Punkt einen Subtask an. Formuliere ihn als Tätigkeit, nicht als\n  Symptom: \"Fix scroll performance on iPad\", nicht \"läuft nicht flüssig\".\n  Beschreibt die Mail nur einen einzigen Punkt, gib ein leeres Array zurück.\n  Erfinde keine Schritte, die nicht in der Mail stehen.\n\n- creator: Der Absender. Für \"name\" nimm ausschließlich den Personennamen,\n  also Vorname und Nachname – nichts weiter.\n  Nicht Teil des Namens und immer weglassen: Abteilungen, Rollen, Jobtitel,\n  Firmennamen, Telefonnummern, Adressen und weitere Signaturzeilen.\n  Steht in der Signatur \"Tobias Frei\" auf einer Zeile und \"DevOps\" auf der\n  nächsten, lautet der Name \"Tobias Frei\".\n  Der Name besteht aus höchstens drei Wörtern.\n  Quelle in dieser Reihenfolge: Klarname im Absenderfeld, sonst erste\n  Signaturzeile.\n  Findest du dort nichts, gilt: bei \"status\": \"ok\" nimm den Teil der Adresse\n  vor dem @-Zeichen, bei \"status\": \"rejected\" gib einen leeren String zurück.\n  Der Absender wird nie sich selbst zugewiesen.\n\n- assignedTo: Werden in der E-Mail Personen namentlich genannt, die die\n  Aufgabe übernehmen sollen, dann rufe IMMER zuerst das Tool \"getContacts\"\n  auf, bevor du antwortest. Ohne diesen Aufruf darfst du assignedTo nicht\n  füllen.\n  Das Tool liefert ein Objekt, dessen Schlüssel die Kontakt-IDs im Format\n  \"contact-<uuid>\" sind und dessen Werte ein Feld \"name\" enthalten.\n  Ordne dann jeden genannten Namen einem Kontakt zu. Eine Zuordnung gilt nur\n  als gültig, wenn sie eindeutig ist: voller Name, oder ein Vorname, der bei\n  genau einem Kontakt vorkommt. Passt ein Name auf mehrere Kontakte oder auf\n  keinen, lass ihn weg.\n  Gib die Treffer als [{\"id\": \"contact-...\"}] zurück, exakt die Schlüssel aus\n  dem Tool-Ergebnis.\n  Wird niemand genannt, rufe das Tool nicht auf und gib ein leeres Array\n  zurück. Erfinde niemals Kontakt-IDs.\n  Der Absender selbst wird nie zugewiesen.\n\nErfinde nichts, was nicht in der Mail steht.\nDisclaimer und Footer ignorierst du vollständig. Aus der Signatur verwendest\ndu ausschließlich den Namen des Absenders.\n"
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 3.1,
+      "position": [
+        1008,
+        272
+      ],
+      "id": "96e3bdcb-6dbd-40b9-acc8-deb25694c8c4",
+      "name": "Analyse Email"
+    },
+    {
+      "parameters": {
+        "modelName": "models/gemini-3.1-flash-lite",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatGoogleGemini",
+      "typeVersion": 1.1,
+      "position": [
+        912,
+        496
+      ],
+      "id": "1e8712b4-9f08-410d-9294-d9ff77a72b52",
+      "name": "Gemini Flash Lite (Primary)",
+      "credentials": {
+        "googlePalmApi": {
+          "id": "kSj9WuaqTI5cUVlq",
+          "name": "Google Gemini(PaLM) Api account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "modelName": "models/gemini-3.5-flash-lite",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatGoogleGemini",
+      "typeVersion": 1.1,
+      "position": [
+        1040,
+        496
+      ],
+      "id": "e463427d-e1ca-47b8-8552-0ae8ecac3b5d",
+      "name": "Gemini Flash Lite (Fallback)",
+      "credentials": {
+        "googlePalmApi": {
+          "id": "kSj9WuaqTI5cUVlq",
+          "name": "Google Gemini(PaLM) Api account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "schemaType": "manual",
+        "inputSchema": "={\n  \"type\": \"object\",\n  \"properties\": {\n    \"status\": { \"type\": \"string\", \"enum\": [\"ok\", \"rejected\"] },\n    \"rejectionReason\": {\n      \"type\": \"string\",\n      \"description\": \"Short reason in English, one full sentence addressed to the sender. Inserted verbatim into an email.\"\n    },\n    \"title\": { \"type\": \"string\" },\n    \"description\": { \"type\": \"string\" },\n    \"category\": {\n      \"type\": \"string\",\n      \"enum\": [\"User Story\", \"Technical Task\", \"Bug Report\", \"Uncategorized\"]\n    },\n    \"dueDate\": { \"type\": \"string\" },\n    \"priority\": { \"type\": \"string\", \"enum\": [\"low\", \"medium\", \"urgent\"] },\n    \"subtasks\": {\n      \"type\": \"array\",\n      \"items\": {\n        \"type\": \"object\",\n        \"properties\": { \"title\": { \"type\": \"string\" } },\n        \"required\": [\"title\"]\n      }\n    },\n    \"creator\": {\n      \"type\": \"object\",\n      \"properties\": { \"name\": { \"type\": \"string\" } },\n      \"required\": [\"name\"]\n    },\n    \"assignedTo\": {\n      \"type\": \"array\",\n      \"items\": {\n        \"type\": \"object\",\n        \"properties\": { \"id\": { \"type\": \"string\" } },\n        \"required\": [\"id\"]\n      }\n    }\n  },\n  \"required\": [\"status\"]\n}\n"
+      },
+      "type": "@n8n/n8n-nodes-langchain.outputParserStructured",
+      "typeVersion": 1.3,
+      "position": [
+        1296,
+        496
+      ],
+      "id": "ca3a3384-1e07-4f77-9aad-e37d1c8bba38",
+      "name": "Task Schema",
+      "notes": "Set JSON structure for task data"
+    },
+    {
+      "parameters": {
+        "jsCode": "const COLORS = {\n  'User Story':     '#0038FF',\n  'Technical Task': '#1FD7C1',\n  'Bug Report':     '#FF3D00',\n  'Uncategorized':  '#8A8A8A',\n};\n\n/**\n * Returns an RFC4122 v4 UUID, falling back to Math.random when the\n * Web Crypto API is unavailable in the sandbox.\n * @returns {string} The generated UUID\n */\nconst uuid = () => (globalThis.crypto?.randomUUID)\n  ? globalThis.crypto.randomUUID()\n  : 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, c => {\n      const r = Math.random() * 16 | 0;\n      return (c === 'x' ? r : (r & 0x3 | 0x8)).toString(16);\n    });\n\n/**\n * Trims a sender name down to a usable display name.\n * Cuts everything after the first separator and keeps at most three words,\n * so signatures and job titles do not end up on the board.\n * @param {string} raw - The name as extracted by the AI agent\n * @returns {string} The cleaned name, or 'Unbekannt' if nothing usable remains\n */\nconst cleanName = (raw) => {\n  const first = String(raw ?? '').split(/[\\n,|/]/)[0].trim();\n  const words = first.split(/\\s+/).slice(0, 3).join(' ');\n  return words || 'Unbekannt';\n};\n\n/**\n * Extracts the bare address from an RFC 5322 From header.\n * Turns 'Ferri Ferrari <ferri@example.com>' into 'ferri@example.com' and\n * passes through headers that already contain only an address.\n * @param {string} raw - The From header of the incoming mail\n * @returns {string} The email address\n */\nconst parseEmail = (raw) =>\n  typeof raw === 'string'\n    ? (raw.match(/<([^>]+)>/)?.[1] ?? raw).trim()\n    : (raw?.value?.[0]?.address ?? '').trim();\n\n\n\n// Die Absenderadresse kommt aus dem Trigger, nicht vom Agent: sie steht im\n// Header und soll nicht durch die KI laufen. Sie ist der Empfaenger der\n// Benachrichtigung, wenn der Task spaeter verschoben wird.\nconst mails = $('Email Trigger (IMAP)').all();\n\nreturn items.map((item, index) => {\n  const out = item.json.output;\n  const mail = (mails[index] ?? mails[0])?.json ?? {};\n\n  return {\n    json: {\n      id: `task-${uuid()}`,\n      title: String(out.title ?? '').slice(0, 60),\n      description: out.description,\n      category: out.category,\n      categoryLabelColor: COLORS[out.category] ?? '#8A8A8A',\n      dueDate: out.dueDate || DateTime.now().plus({ days: 30 }).toFormat('yyyy-MM-dd'),\n      priority: out.priority,\n      status: 'triage',\n      assignedTo: (out.assignedTo ?? []).filter(\n        a => typeof a?.id === 'string' && a.id.startsWith('contact-')\n      ),\n      creator: {\n        type: 'extern',\n        source: 'email',\n        name: cleanName(out.creator?.name),\n        email: parseEmail(mail.from)\n      },\n      subtasks: (out.subtasks ?? []).map(s => ({\n        id: `subtask-${uuid()}`,\n        title: s.title,\n        completed: false\n      })),\n      aiGenerated: true\n    }\n  };\n});\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1712,
+        272
+      ],
+      "id": "24240ebe-b1cf-4967-bcff-ec9a3d07c3b8",
+      "name": "Build Task Record"
+    },
+    {
+      "parameters": {
+        "method": "PUT",
+        "url": "=https://join-backend-635a8-default-rtdb.europe-west1.firebasedatabase.app/tasks/{{$json.id}}.json",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "googleApi",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify($json) }}",
+        "options": {}
+      },
+      "id": "d1dc57d1-c0e1-436d-b0f5-4124385ba5eb",
+      "name": "Save Task",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        1936,
+        272
+      ],
+      "credentials": {
+        "googleApi": {
+          "id": "gOdSO7heKJ3INtfN",
+          "name": "Google Service Account account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "authentication": "coreImapAccount",
+        "resource": "email",
+        "operation": "moveEmail",
+        "sourceMailbox": {
+          "__rl": true,
+          "mode": "list",
+          "value": "INBOX"
+        },
+        "emailUid": "={{ $('Email Trigger (IMAP)').item.json.attributes.uid }}",
+        "destinationMailbox": {
+          "__rl": true,
+          "value": "done",
+          "mode": "list",
+          "cachedResultName": "done"
+        }
+      },
+      "type": "n8n-nodes-imap.imap",
+      "typeVersion": 1,
+      "position": [
+        2160,
+        272
+      ],
+      "id": "8b8c3b96-7c84-4a60-9ccf-1e6dafabc71a",
+      "name": "Archive Email (done)",
+      "credentials": {
+        "imap": {
+          "id": "ZZ3GC1Z6GbyHmr9h",
+          "name": "IMAP account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "fromEmail": "no-reply@domain.ch",
+        "toEmail": "info@domain.ch",
+        "subject": "=New Ticket generated",
+        "html": "=Hi, \n<br><br>\nA new AI generated ticket was successfully created and put into the Join Board. \n<br><br>\nCreator: {{ $('Save Task').item.json.creator.name }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.emailSend",
+      "typeVersion": 2.1,
+      "position": [
+        2384,
+        224
+      ],
+      "id": "8b0b6d1f-11b1-4e0c-86d7-0572bec3b52e",
+      "name": "Notify Team",
+      "webhookId": "e27c319b-b355-4c2a-9b51-3424b80cb565",
+      "credentials": {
+        "smtp": {
+          "id": "6HAh808U2Yu9Qrlp",
+          "name": "SMTP account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "=https://join-backend-635a8-default-rtdb.europe-west1.firebasedatabase.app/triggerCounter/{{ $today.toFormat('yyyy-MM-dd') }}.json",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "googleApi",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"at\": \"{{ $now.toISO() }}\",\n  \"mailUid\": \"{{ $('Email Trigger (IMAP)').item.json.attributes.uid }}\"\n}",
+        "options": {}
+      },
+      "id": "a882bc0c-a696-48de-8547-2ed98c97cc3d",
+      "name": "Count Request",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        2384,
+        464
+      ],
+      "credentials": {
+        "googleApi": {
+          "id": "gOdSO7heKJ3INtfN",
+          "name": "Google Service Account account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "fromEmail": "no-reply@domain.ch",
+        "toEmail": "={{ $('Email Trigger (IMAP)').item.json.from.text }}",
+        "subject": "Automated message from Join-Board",
+        "html": "=Hello {{ ($('Email Trigger (IMAP)').item.json.from.text || $('Email Trigger (IMAP)').item.json.from).replace(/<[^>]*>/, '').trim() || 'there' }}\n\n\n<br><br>\nYour message could not be processed as a task from our System. \n<br><br>\nReason: {{ $json.output.rejectionReason }}\n<br><br>\nHowever, we will process your message and get back to you.\n<br><br>\nBest regards <br>\nThe Join team\n\n",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.emailSend",
+      "typeVersion": 2.1,
+      "position": [
+        1936,
+        512
+      ],
+      "id": "f56092ab-5c14-4787-862b-0d9633a908a1",
+      "name": "Reply: Not a Task",
+      "webhookId": "a5de7ba8-5ab0-49c5-8dd9-16c4e5af782d",
+      "credentials": {
+        "smtp": {
+          "id": "6HAh808U2Yu9Qrlp",
+          "name": "SMTP account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "authentication": "coreImapAccount",
+        "resource": "email",
+        "operation": "moveEmail",
+        "sourceMailbox": {
+          "__rl": true,
+          "mode": "list",
+          "value": "INBOX"
+        },
+        "emailUid": "={{ $('Email Trigger (IMAP)').item.json.attributes.uid }}",
+        "destinationMailbox": {
+          "__rl": true,
+          "value": "to-edit",
+          "mode": "list",
+          "cachedResultName": "to-edit"
+        }
+      },
+      "type": "n8n-nodes-imap.imap",
+      "typeVersion": 1,
+      "position": [
+        2160,
+        512
+      ],
+      "id": "be5789bd-06fa-4cd4-b9c1-216d381c6b3c",
+      "name": "Flag Email (rejected)",
+      "credentials": {
+        "imap": {
+          "id": "ZZ3GC1Z6GbyHmr9h",
+          "name": "IMAP account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "fromEmail": "no-reply@domain.ch",
+        "toEmail": "={{ $('Email Trigger (IMAP)').item.json.from.text }}",
+        "subject": "=Re: {{ $('Email Trigger (IMAP)').item.json.subject }}",
+        "html": "Hi,<br>\n\nthanks for your request. The daily limit of 10 AI-processed requests\nhas been reached today.\n\n<br><br>\n\nYour email has been received — our team will review it manually instead\nof creating a ticket automatically. There is no need to send it again.\n\n<br><br>\n\nBest regards <br>\nThe Join team",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.emailSend",
+      "typeVersion": 2.1,
+      "position": [
+        1088,
+        672
+      ],
+      "id": "4fe9c2da-fa4b-454f-8c6b-ee701f412460",
+      "name": "Reply: Limit Reached",
+      "webhookId": "3ee11fce-e024-4bec-8e49-251f73bfc4d0",
+      "credentials": {
+        "smtp": {
+          "id": "6HAh808U2Yu9Qrlp",
+          "name": "SMTP account"
+        }
+      }
+    },
+    {
+      "parameters": {
         "authentication": "coreImapAccount",
         "resource": "email",
         "operation": "moveEmail",
@@ -450,7 +451,7 @@
         672
       ],
       "id": "ef4a61d2-6b2c-4cb6-9892-6f6dc7332df5",
-      "name": "Move Email 2 to-edit",
+      "name": "Flag Email (limit)",
       "credentials": {
         "imap": {
           "id": "ZZ3GC1Z6GbyHmr9h",
@@ -466,29 +467,7 @@
       "main": [
         [
           {
-            "node": "GET Trigger Counter",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "AI Agent": {
-      "main": [
-        [
-          {
-            "node": "Task detected?",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "AI JSON in FB JSON": {
-      "main": [
-        [
-          {
-            "node": "PUT to FB",
+            "node": "Read Daily Counter",
             "type": "main",
             "index": 0
           }
@@ -499,123 +478,8 @@
       "ai_tool": [
         [
           {
-            "node": "AI Agent",
+            "node": "Analyse Email",
             "type": "ai_tool",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "GET Trigger Counter": {
-      "main": [
-        [
-          {
-            "node": "Validate Counter",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "Validate Counter": {
-      "main": [
-        [
-          {
-            "node": "Limit open?",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "Task JSON": {
-      "ai_outputParser": [
-        [
-          {
-            "node": "AI Agent",
-            "type": "ai_outputParser",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "Primary": {
-      "ai_languageModel": [
-        [
-          {
-            "node": "AI Agent",
-            "type": "ai_languageModel",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "Fallback": {
-      "ai_languageModel": [
-        [
-          {
-            "node": "AI Agent",
-            "type": "ai_languageModel",
-            "index": 1
-          }
-        ]
-      ]
-    },
-    "PUT to FB": {
-      "main": [
-        [
-          {
-            "node": "MoveEmail 2 done",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "Send an Email1": {
-      "main": [
-        [
-          {
-            "node": "MoveEmail 2 to-edit",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "Send Limit Email": {
-      "main": [
-        [
-          {
-            "node": "Move Email 2 to-edit",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "MoveEmail 2 to-edit": {
-      "main": [
-        [
-          {
-            "node": "POST Counter",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "MoveEmail 2 done": {
-      "main": [
-        [
-          {
-            "node": "Send an Email",
-            "type": "main",
-            "index": 0
-          },
-          {
-            "node": "POST Counter",
-            "type": "main",
             "index": 0
           }
         ]
@@ -625,14 +489,14 @@
       "main": [
         [
           {
-            "node": "AI Agent",
+            "node": "Analyse Email",
             "type": "main",
             "index": 0
           }
         ],
         [
           {
-            "node": "Send Limit Email",
+            "node": "Reply: Limit Reached",
             "type": "main",
             "index": 0
           }
@@ -643,14 +507,151 @@
       "main": [
         [
           {
-            "node": "AI JSON in FB JSON",
+            "node": "Build Task Record",
             "type": "main",
             "index": 0
           }
         ],
         [
           {
-            "node": "Send an Email1",
+            "node": "Reply: Not a Task",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Check Daily Limit": {
+      "main": [
+        [
+          {
+            "node": "Limit open?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Read Daily Counter": {
+      "main": [
+        [
+          {
+            "node": "Check Daily Limit",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Analyse Email": {
+      "main": [
+        [
+          {
+            "node": "Task detected?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Gemini Flash Lite (Primary)": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Analyse Email",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Gemini Flash Lite (Fallback)": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Analyse Email",
+            "type": "ai_languageModel",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "Task Schema": {
+      "ai_outputParser": [
+        [
+          {
+            "node": "Analyse Email",
+            "type": "ai_outputParser",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Build Task Record": {
+      "main": [
+        [
+          {
+            "node": "Save Task",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Save Task": {
+      "main": [
+        [
+          {
+            "node": "Archive Email (done)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Archive Email (done)": {
+      "main": [
+        [
+          {
+            "node": "Notify Team",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Count Request",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Reply: Not a Task": {
+      "main": [
+        [
+          {
+            "node": "Flag Email (rejected)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Flag Email (rejected)": {
+      "main": [
+        [
+          {
+            "node": "Count Request",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Reply: Limit Reached": {
+      "main": [
+        [
+          {
+            "node": "Flag Email (limit)",
             "type": "main",
             "index": 0
           }
@@ -658,12 +659,12 @@
       ]
     }
   },
-  "active": false,
+  "active": true,
   "settings": {
     "executionOrder": "v1",
     "binaryMode": "separate"
   },
-  "versionId": "d55e8a36-979d-49dc-b561-645619061ac8",
+  "versionId": "8a902656-605b-4236-a757-31cc4daeac9a",
   "meta": {
     "templateCredsSetupCompleted": true,
     "instanceId": "a8acb594be7d57707b90d3d29c4695b9734d908caaf216a819ede99db3d561b4"

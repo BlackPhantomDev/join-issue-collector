@@ -71,7 +71,7 @@
         0
       ],
       "id": "f08067ba-39d8-4c88-8fbc-01faf9c6437f",
-      "name": "Send an Email",
+      "name": "Reply: Status Changed",
       "webhookId": "42ceda5a-61f8-4fb7-856b-4c824b24a9b7",
       "credentials": {
         "smtp": {
@@ -95,7 +95,7 @@
         0
       ],
       "id": "4287f8b6-1267-4ef4-935f-b0f86bb020e3",
-      "name": "HTTP Request",
+      "name": "Delete Notification",
       "credentials": {
         "googleApi": {
           "id": "gOdSO7heKJ3INtfN",
@@ -132,18 +132,18 @@
       "main": [
         [
           {
-            "node": "Send an Email",
+            "node": "Reply: Status Changed",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "Send an Email": {
+    "Reply: Status Changed": {
       "main": [
         [
           {
-            "node": "HTTP Request",
+            "node": "Delete Notification",
             "type": "main",
             "index": 0
           }
@@ -151,12 +151,12 @@
       ]
     }
   },
-  "active": false,
+  "active": true,
   "settings": {
     "executionOrder": "v1",
     "binaryMode": "separate"
   },
-  "versionId": "e6f6e3df-1fee-4e60-b952-6a99c288b3e6",
+  "versionId": "edc3af69-e431-436e-8ede-2b4f1287fbb3",
   "meta": {
     "templateCredsSetupCompleted": true,
     "instanceId": "a8acb594be7d57707b90d3d29c4695b9734d908caaf216a819ede99db3d561b4"
