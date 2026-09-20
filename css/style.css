@@ -501,16 +501,6 @@ main {
     display: none;
   }
 
-  .drop-zone {
-    display: flex;
-    flex-direction: row;
-    flex-wrap: nowrap;
-    gap: 12px;
-    min-height: unset;
-    width: max-content;
-    overflow: visible;
-  }
-
   .scroll-arrow {
     width: 28px;
     min-width: 28px;
