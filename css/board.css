@@ -153,6 +153,28 @@ input.find-task {
   box-shadow: 0 8px 24px rgba(0, 0, 0, 0.14);
 }
 
+.task-card.dragging {
+  opacity: 0.45;
+  transform: rotate(2deg);
+  box-shadow: 0 12px 28px rgba(0, 0, 0, 0.18);
+}
+
+.board-task-body.drag-over {
+  background-color: #e8eef7;
+  outline: 2px dashed var(--highligted-color);
+  outline-offset: 4px;
+}
+
+@media (min-width: 1024px) {
+  .task-card {
+    cursor: grab;
+  }
+
+  .task-card.dragging {
+    cursor: grabbing;
+  }
+}
+
 .task-card-topbar {
   display: flex;
   justify-content: space-between;

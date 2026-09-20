@@ -12,6 +12,34 @@ const COLUMN_LABELS = {
 };
 
 /**
+ * Minimum viewport width in pixels at which task cards can be dragged.
+ * Below it the move menu on each card stays the only way to move a task,
+ * because pointer based dragging is unreliable on touch devices.
+ */
+const DRAG_MIN_WIDTH = 1024;
+
+/**
+ * Maximum viewport width in pixels at which the board uses its stacked
+ * layout, where the columns sit below each other and their cards scroll
+ * sideways instead of downwards.
+ */
+const STACKED_LAYOUT_MAX_WIDTH = 1200;
+
+/**
+ * Distance in pixels from a scrollable edge at which auto scrolling starts
+ * while a card is being dragged.
+ */
+const AUTO_SCROLL_EDGE = 90;
+
+/**
+ * Pixels scrolled per animation frame while auto scrolling.
+ */
+const AUTO_SCROLL_STEP = 16;
+
+let autoScrollFrame = null;
+let dragPointer = { x: 0, y: 0 };
+
+/**
  * Initializes the board by running setup, loading tasks and rendering.
  * @param {string} site - The current site/page identifier
  * @returns {Promise<void>}
@@ -22,6 +50,7 @@ async function initBoard(site) {
   await renderAll();
   document.addEventListener("click", handleOutsideClick);
   window.addEventListener("resize", updateScrollArrows);
+  initDragAndDrop();
 }
 
 /**
@@ -181,12 +210,28 @@ function getMoveOverlayHTML(taskId, targets) {
 }
 
 /**
- * Moves a task to a new column via the overlay.
+ * Moves a task to a new column from the move menu on a card.
+ * @param {Event} event - The click event of the menu entry
+ * @param {string} taskId - The ID of the task to move
+ * @param {string} newStatus - The column the task moves to
+ * @returns {Promise<void>}
  */
 async function moveTaskTo(event, taskId, newStatus) {
   event.stopPropagation();
+  await applyTaskMove(taskId, newStatus);
+}
+
+/**
+ * Persists a status change, queues the notification for the task creator and
+ * re-renders the affected columns. Shared by the move menu and drag and drop,
+ * so both ways of moving a task behave identically.
+ * @param {string} taskId - The ID of the task to move
+ * @param {string} newStatus - The column the task moves to
+ * @returns {Promise<void>}
+ */
+async function applyTaskMove(taskId, newStatus) {
   const task = tasks.find((t) => t.id === taskId);
-  if (!task) return;
+  if (!task || !COLUMNS.includes(newStatus)) return;
   const oldStatus = task.status;
   if (oldStatus === newStatus) return;
 
@@ -206,7 +251,8 @@ async function moveTaskTo(event, taskId, newStatus) {
  * Queues an email notification for the creator of a moved task.
  * n8n polls this queue, sends the mail and removes the entry — the board
  * itself never talks to n8n, which keeps the workflow server unreachable
- * from the outside.
+ * from the outside. Errors are swallowed on purpose: a notification that
+ * cannot be queued must never block moving a task.
  * @param {Object} task - The moved task
  * @param {string} from - The column the task was in
  * @param {string} to - The column the task was moved to
@@ -225,7 +271,7 @@ async function queueStatusNotification(task, from, to) {
       at: new Date().toISOString(),
     });
   } catch (error) {
-    // A failed notification must never block moving a task.
+    return;
   }
 }
 
@@ -249,6 +295,226 @@ function handleOutsideClick(event) {
 }
 
 /* =========================================================
+   VIEWPORT
+   ========================================================= */
+
+/**
+ * Reports whether task cards can be dragged at the current viewport width.
+ * @returns {boolean} True when the viewport is wide enough for drag and drop
+ */
+function isDragEnabled() {
+  return window.innerWidth >= DRAG_MIN_WIDTH;
+}
+
+/**
+ * Reports whether the board currently renders in its stacked layout.
+ * @returns {boolean} True when columns sit below each other
+ */
+function isStackedLayout() {
+  return window.innerWidth <= STACKED_LAYOUT_MAX_WIDTH;
+}
+
+/* =========================================================
+   DRAG AND DROP
+   ========================================================= */
+
+/**
+ * Registers the drag and drop listeners for the board.
+ * The listeners sit on the board container instead of on the cards, because
+ * every move re-renders the columns and would otherwise drop the listeners.
+ * @returns {void}
+ */
+function initDragAndDrop() {
+  const board = document.querySelector(".progress-board");
+  if (!board) return;
+  board.addEventListener("dragstart", handleDragStart);
+  board.addEventListener("dragover", handleDragOver);
+  board.addEventListener("dragleave", handleDragLeave);
+  board.addEventListener("drop", handleDrop);
+  board.addEventListener("dragend", handleDragEnd);
+}
+
+/**
+ * Starts dragging a task card and hands its ID to the drop target.
+ * Cancels the drag below the desktop width, where the move menu takes over.
+ * @param {DragEvent} event - The dragstart event
+ * @returns {void}
+ */
+function handleDragStart(event) {
+  const card = event.target.closest(".task-card");
+  if (!card || !isDragEnabled()) {
+    event.preventDefault();
+    return;
+  }
+  event.dataTransfer.effectAllowed = "move";
+  event.dataTransfer.setData("text/plain", card.dataset.taskId);
+  card.classList.add("dragging");
+}
+
+/**
+ * Marks the column below the pointer as drop target and keeps the board
+ * scrolling while the pointer rests near an edge.
+ * @param {DragEvent} event - The dragover event
+ * @returns {void}
+ */
+function handleDragOver(event) {
+  if (!isDragEnabled()) return;
+  event.preventDefault();
+  event.dataTransfer.dropEffect = "move";
+  dragPointer = { x: event.clientX, y: event.clientY };
+  startAutoScroll();
+  highlightDropTarget(event.target.closest(".board-task-body"));
+}
+
+/**
+ * Clears the drop highlight once the pointer leaves the board.
+ * @param {DragEvent} event - The dragleave event
+ * @returns {void}
+ */
+function handleDragLeave(event) {
+  if (event.relatedTarget && event.currentTarget.contains(event.relatedTarget)) {
+    return;
+  }
+  highlightDropTarget(null);
+}
+
+/**
+ * Moves the dragged task into the column it was dropped on.
+ * @param {DragEvent} event - The drop event
+ * @returns {Promise<void>}
+ */
+async function handleDrop(event) {
+  if (!isDragEnabled()) return;
+  event.preventDefault();
+  const column = event.target.closest(".board-task-body");
+  const taskId = event.dataTransfer.getData("text/plain");
+  handleDragEnd();
+  if (!column || !taskId) return;
+  await applyTaskMove(taskId, column.dataset.column);
+}
+
+/**
+ * Removes every trace of the drag once the interaction ends, including a
+ * drag the user aborted with Escape or by dropping outside the board.
+ * @returns {void}
+ */
+function handleDragEnd() {
+  stopAutoScroll();
+  highlightDropTarget(null);
+  document
+    .querySelectorAll(".task-card.dragging")
+    .forEach((card) => card.classList.remove("dragging"));
+}
+
+/**
+ * Highlights a single column as the active drop target.
+ * @param {HTMLElement|null} target - The column body below the pointer
+ * @returns {void}
+ */
+function highlightDropTarget(target) {
+  document.querySelectorAll(".board-task-body.drag-over").forEach((column) => {
+    if (column !== target) column.classList.remove("drag-over");
+  });
+  if (target) target.classList.add("drag-over");
+}
+
+/* =========================================================
+   AUTO SCROLL WHILE DRAGGING
+   ========================================================= */
+
+/**
+ * Starts the auto scroll loop unless it is already running.
+ * @returns {void}
+ */
+function startAutoScroll() {
+  if (autoScrollFrame !== null) return;
+  autoScrollFrame = requestAnimationFrame(runAutoScroll);
+}
+
+/**
+ * Stops the auto scroll loop.
+ * @returns {void}
+ */
+function stopAutoScroll() {
+  if (autoScrollFrame === null) return;
+  cancelAnimationFrame(autoScrollFrame);
+  autoScrollFrame = null;
+}
+
+/**
+ * Scrolls board and hovered column once per animation frame for as long as a
+ * card is being dragged. Without this, columns outside the visible area could
+ * not be reached: on wide screens the board scrolls sideways, in the stacked
+ * layout the columns sit below each other.
+ * @returns {void}
+ */
+function runAutoScroll() {
+  scrollBoardSideways();
+  scrollBoardVertically();
+  scrollColumnUnderPointer();
+  autoScrollFrame = requestAnimationFrame(runAutoScroll);
+}
+
+/**
+ * Scrolls the board horizontally while the pointer sits near its left or
+ * right edge.
+ * @returns {void}
+ */
+function scrollBoardSideways() {
+  const board = document.querySelector(".progress-board");
+  if (!board) return;
+  const bounds = board.getBoundingClientRect();
+  scrollNearEdge(board, "scrollLeft", dragPointer.x, bounds.left, bounds.right);
+}
+
+/**
+ * Scrolls the board area vertically while the pointer sits near its top or
+ * bottom edge. This carries the stacked layout, where a column further down
+ * can only be reached by scrolling the main area.
+ * @returns {void}
+ */
+function scrollBoardVertically() {
+  const main = document.getElementById("board-main");
+  if (!main) return;
+  const bounds = main.getBoundingClientRect();
+  scrollNearEdge(main, "scrollTop", dragPointer.y, bounds.top, bounds.bottom);
+}
+
+/**
+ * Scrolls the column below the pointer so cards outside its visible area
+ * become reachable as drop position.
+ * @returns {void}
+ */
+function scrollColumnUnderPointer() {
+  const element = document.elementFromPoint(dragPointer.x, dragPointer.y);
+  const column = element?.closest(".task-cards");
+  if (!column) return;
+  const bounds = column.getBoundingClientRect();
+  const axis = isStackedLayout() ? "scrollLeft" : "scrollTop";
+  const position = isStackedLayout() ? dragPointer.x : dragPointer.y;
+  const start = isStackedLayout() ? bounds.left : bounds.top;
+  const end = isStackedLayout() ? bounds.right : bounds.bottom;
+  scrollNearEdge(column, axis, position, start, end);
+}
+
+/**
+ * Scrolls a container along one axis while the pointer sits near its edges.
+ * @param {HTMLElement} container - The scrollable container
+ * @param {string} axis - Either "scrollLeft" or "scrollTop"
+ * @param {number} position - The pointer position on that axis
+ * @param {number} start - The container edge with the lower coordinate
+ * @param {number} end - The container edge with the higher coordinate
+ * @returns {void}
+ */
+function scrollNearEdge(container, axis, position, start, end) {
+  if (position < start + AUTO_SCROLL_EDGE) {
+    container[axis] -= AUTO_SCROLL_STEP;
+  } else if (position > end - AUTO_SCROLL_EDGE) {
+    container[axis] += AUTO_SCROLL_STEP;
+  }
+}
+
+/* =========================================================
    SCROLL ARROWS
    ========================================================= */
 
@@ -261,7 +527,7 @@ function handleOutsideClick(event) {
 function scrollColumn(columnId, direction) {
   const container = document.getElementById(columnId);
   if (!container) return;
-  const isMobile = window.innerWidth <= 1200;
+  const isMobile = isStackedLayout();
   const scrollAmount = isMobile ? 260 : 280;
 
   if (isMobile) {
@@ -289,7 +555,7 @@ function updateScrollArrows() {
     const arrowDown = body.querySelector(".arrow-down");
     if (!arrowUp || !arrowDown) continue;
 
-    const isMobile = window.innerWidth <= 1200;
+    const isMobile = isStackedLayout();
 
     if (isMobile) {
       handleMobileArrows(container, arrowUp, arrowDown);
