@@ -319,8 +319,10 @@ function getTaskCategoryLabelColor(category) {
             return "#1FD7C1";
         case "Bug Report":
             return "#FF3D00";
+        case "Uncategorized":
+            return "#8A8A8A";
         default:
-            return "#2A3647";
+            return "#8A8A8A";
     }
 }
 

@@ -89,7 +89,7 @@ function normalizeTask(id, task) {
     id,
     title: task.title ?? "Untitled task",
     description: task.description ?? "",
-    category: task.category ?? "Technical Task",
+    category: task.category ?? "Uncategorized",
     categoryLabelColor:
       task.categoryLabelColor ?? getTaskCategoryLabelColor(task.category),
     priority: PRIORITIES.includes(task.priority) ? task.priority : "medium",
