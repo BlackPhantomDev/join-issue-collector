@@ -459,6 +459,32 @@
         }
       },
       "notes": "Moves the Email in the \"to-edit\" folder of the Mailbox"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "=https://join-backend-635a8-default-rtdb.europe-west1.firebasedatabase.app/triggerCounter/{{ $today.toFormat('yyyy-MM-dd') }}.json",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "googleApi",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"at\": \"{{ $now.toISO() }}\",\n  \"mailUid\": \"{{ $('Email Trigger (IMAP)').item.json.attributes.uid }}\"\n}",
+        "options": {}
+      },
+      "id": "9a46eb11-5a64-4d5e-9d1f-6f993400d467",
+      "name": "Count Request1",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        2384,
+        272
+      ],
+      "credentials": {
+        "googleApi": {
+          "id": "gOdSO7heKJ3INtfN",
+          "name": "Google Service Account account"
+        }
+      }
     }
   ],
   "pinData": {},
@@ -613,12 +639,7 @@
       "main": [
         [
           {
-            "node": "Notify Team",
-            "type": "main",
-            "index": 0
-          },
-          {
-            "node": "Count Request",
+            "node": "Count Request1",
             "type": "main",
             "index": 0
           }
@@ -652,6 +673,17 @@
         [
           {
             "node": "Flag Email (limit)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Count Request1": {
+      "main": [
+        [
+          {
+            "node": "Notify Team",
             "type": "main",
             "index": 0
           }
