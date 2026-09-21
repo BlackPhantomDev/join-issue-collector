@@ -321,32 +321,6 @@
     },
     {
       "parameters": {
-        "method": "POST",
-        "url": "=https://join-backend-635a8-default-rtdb.europe-west1.firebasedatabase.app/triggerCounter/{{ $today.toFormat('yyyy-MM-dd') }}.json",
-        "authentication": "predefinedCredentialType",
-        "nodeCredentialType": "googleApi",
-        "sendBody": true,
-        "specifyBody": "json",
-        "jsonBody": "={\n  \"at\": \"{{ $now.toISO() }}\",\n  \"mailUid\": \"{{ $('Email Trigger (IMAP)').item.json.attributes.uid }}\"\n}",
-        "options": {}
-      },
-      "id": "a882bc0c-a696-48de-8547-2ed98c97cc3d",
-      "name": "Count Request",
-      "type": "n8n-nodes-base.httpRequest",
-      "typeVersion": 4.2,
-      "position": [
-        2160,
-        464
-      ],
-      "credentials": {
-        "googleApi": {
-          "id": "gOdSO7heKJ3INtfN",
-          "name": "Google Service Account account"
-        }
-      }
-    },
-    {
-      "parameters": {
         "fromEmail": "no-reply@domain.ch",
         "toEmail": "={{ $('Email Trigger (IMAP)').item.json.from.text }}",
         "subject": "Automated message from Join-Board",
@@ -472,12 +446,38 @@
         "options": {}
       },
       "id": "9a46eb11-5a64-4d5e-9d1f-6f993400d467",
-      "name": "Count Request1",
+      "name": "Count Request (task)",
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
       "position": [
         2384,
         272
+      ],
+      "credentials": {
+        "googleApi": {
+          "id": "gOdSO7heKJ3INtfN",
+          "name": "Google Service Account account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "=https://join-backend-635a8-default-rtdb.europe-west1.firebasedatabase.app/triggerCounter/{{ $today.toFormat('yyyy-MM-dd') }}.json",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "googleApi",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"at\": \"{{ $now.toISO() }}\",\n  \"mailUid\": \"{{ $('Email Trigger (IMAP)').item.json.attributes.uid }}\"\n}",
+        "options": {}
+      },
+      "id": "a882bc0c-a696-48de-8547-2ed98c97cc3d",
+      "name": "Count Request (rejected)",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        2160,
+        464
       ],
       "credentials": {
         "googleApi": {
@@ -639,7 +639,7 @@
       "main": [
         [
           {
-            "node": "Count Request1",
+            "node": "Count Request (task)",
             "type": "main",
             "index": 0
           }
@@ -661,7 +661,7 @@
       "main": [
         [
           {
-            "node": "Count Request",
+            "node": "Count Request (rejected)",
             "type": "main",
             "index": 0
           }
@@ -679,7 +679,7 @@
         ]
       ]
     },
-    "Count Request1": {
+    "Count Request (task)": {
       "main": [
         [
           {
