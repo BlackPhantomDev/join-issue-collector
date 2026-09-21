@@ -35,8 +35,8 @@
       "type": "n8n-nodes-base.httpRequestTool",
       "typeVersion": 4.5,
       "position": [
-        1168,
-        496
+        1160,
+        488
       ],
       "id": "9db52296-aa9c-4972-a3b6-77ae9dc78dfb",
       "name": "getContacts",
@@ -162,8 +162,8 @@
       "type": "@n8n/n8n-nodes-langchain.agent",
       "typeVersion": 3.1,
       "position": [
-        1008,
-        272
+        1000,
+        256
       ],
       "id": "96e3bdcb-6dbd-40b9-acc8-deb25694c8c4",
       "name": "Analyse Email"
@@ -176,8 +176,8 @@
       "type": "@n8n/n8n-nodes-langchain.lmChatGoogleGemini",
       "typeVersion": 1.1,
       "position": [
-        912,
-        496
+        904,
+        488
       ],
       "id": "1e8712b4-9f08-410d-9294-d9ff77a72b52",
       "name": "Gemini Flash Lite (Primary)",
@@ -196,8 +196,8 @@
       "type": "@n8n/n8n-nodes-langchain.lmChatGoogleGemini",
       "typeVersion": 1.1,
       "position": [
-        1040,
-        496
+        1032,
+        488
       ],
       "id": "e463427d-e1ca-47b8-8552-0ae8ecac3b5d",
       "name": "Gemini Flash Lite (Fallback)",
@@ -216,8 +216,8 @@
       "type": "@n8n/n8n-nodes-langchain.outputParserStructured",
       "typeVersion": 1.3,
       "position": [
-        1296,
-        496
+        1288,
+        488
       ],
       "id": "ca3a3384-1e07-4f77-9aad-e37d1c8bba38",
       "name": "Task Schema",
@@ -306,8 +306,8 @@
       "type": "n8n-nodes-base.emailSend",
       "typeVersion": 2.1,
       "position": [
-        2384,
-        224
+        2608,
+        272
       ],
       "id": "8b0b6d1f-11b1-4e0c-86d7-0572bec3b52e",
       "name": "Notify Team",
@@ -335,7 +335,7 @@
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
       "position": [
-        2384,
+        2160,
         464
       ],
       "credentials": {
@@ -356,8 +356,8 @@
       "type": "n8n-nodes-base.emailSend",
       "typeVersion": 2.1,
       "position": [
-        1936,
-        512
+        1712,
+        464
       ],
       "id": "f56092ab-5c14-4787-862b-0d9633a908a1",
       "name": "Reply: Not a Task",
@@ -390,8 +390,8 @@
       "type": "n8n-nodes-imap.imap",
       "typeVersion": 1,
       "position": [
-        2160,
-        512
+        1936,
+        464
       ],
       "id": "be5789bd-06fa-4cd4-b9c1-216d381c6b3c",
       "name": "Flag Email (rejected)",
@@ -414,7 +414,7 @@
       "typeVersion": 2.1,
       "position": [
         1088,
-        672
+        656
       ],
       "id": "4fe9c2da-fa4b-454f-8c6b-ee701f412460",
       "name": "Reply: Limit Reached",
@@ -448,7 +448,7 @@
       "typeVersion": 1,
       "position": [
         1488,
-        672
+        656
       ],
       "id": "ef4a61d2-6b2c-4cb6-9892-6f6dc7332df5",
       "name": "Flag Email (limit)",
@@ -696,7 +696,7 @@
     "executionOrder": "v1",
     "binaryMode": "separate"
   },
-  "versionId": "8a902656-605b-4236-a757-31cc4daeac9a",
+  "versionId": "0d9e823c-0db1-496e-ad30-78abc7a3afee",
   "meta": {
     "templateCredsSetupCompleted": true,
     "instanceId": "a8acb594be7d57707b90d3d29c4695b9734d908caaf216a819ede99db3d561b4"
