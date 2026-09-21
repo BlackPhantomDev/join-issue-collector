@@ -228,6 +228,12 @@ main {
   }
 }
 
+@media (min-width: 1201px) {
+  .move-to-btn {
+    display: none;
+  }
+}
+
 @media (max-width: 1200px) {
   #sidebar {
     position: fixed;
@@ -513,7 +519,7 @@ main {
 
   .arrow-up {
     margin-bottom: 0;
-    margin-right: 4px;
+    margin-right: 16px;
   }
 
   .arrow-up svg {
@@ -522,7 +528,7 @@ main {
 
   .arrow-down {
     margin-top: 0;
-    margin-left: 4px;
+    margin-left: 16px;
   }
 
   .arrow-down svg {
@@ -536,6 +542,18 @@ main {
 }
 
 @media (max-width: 575px) {
+  dialog#openDialogBoard {
+    padding: 20px;
+  }
+
+  dialog#openDialogBoard h2 {
+    font-size: 32px;
+  }
+
+  dialog#openDialogBoard .creator-row > span:first-child {
+    min-width: 0;
+  }
+
   .summary_row_first,
   .summary_row_middle,
   .summary_row_last {
