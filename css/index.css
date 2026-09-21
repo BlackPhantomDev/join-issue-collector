@@ -51,6 +51,23 @@ footer {
   width: 100%;
 }
 
+#login-back {
+  margin-right: auto;
+  padding-left: 32px;
+  line-height: 0;
+}
+
+#login-back img {
+  width: 26px;
+  height: 24px;
+  display: block;
+}
+
+#login-back:hover img {
+  transform: translateX(-4px);
+  transition: transform 0.1s ease-in;
+}
+
 #signup {
   display: flex;
   align-items: center;
