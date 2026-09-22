@@ -3,17 +3,18 @@
   "nodes": [
     {
       "parameters": {
+        "postProcessAction": "nothing",
         "format": "resolved",
         "options": {
-          "customEmailConfig": "[\"UNSEEN\"]",
-          "trackLastMessageId": true
+          "customEmailConfig": "=[\"ALL\"]",
+          "forceReconnect": 10
         }
       },
       "type": "n8n-nodes-base.emailReadImap",
       "typeVersion": 2.2,
       "position": [
         2064,
-        64
+        -16
       ],
       "id": "237683b7-5766-438a-ba35-166a6989ea57",
       "name": "Email Trigger (IMAP)",
@@ -35,8 +36,8 @@
       "type": "n8n-nodes-base.httpRequestTool",
       "typeVersion": 4.5,
       "position": [
-        3224,
-        40
+        3232,
+        -32
       ],
       "id": "286b13c4-5b8d-48f8-b27a-90ad36824ee1",
       "name": "getContacts",
@@ -75,7 +76,7 @@
       "typeVersion": 2.3,
       "position": [
         2736,
-        64
+        -16
       ],
       "id": "72b62337-18a6-48e0-a72f-70308083ddd9",
       "name": "Limit open?"
@@ -108,7 +109,7 @@
       "typeVersion": 2.3,
       "position": [
         3552,
-        -80
+        -64
       ],
       "id": "fc4d00c5-05be-4331-a28b-e0cda7fc294c",
       "name": "Task detected?"
@@ -121,7 +122,7 @@
       "typeVersion": 2,
       "position": [
         2512,
-        64
+        -16
       ],
       "id": "a2c74e7e-eceb-46e4-947f-afb0e7013e52",
       "name": "Check Daily Limit",
@@ -138,7 +139,7 @@
       "typeVersion": 4.5,
       "position": [
         2288,
-        64
+        -16
       ],
       "id": "8c6412f6-3200-4de1-bcd1-735a8de8caad",
       "name": "Read Daily Counter",
@@ -162,22 +163,22 @@
       "type": "@n8n/n8n-nodes-langchain.agent",
       "typeVersion": 3.1,
       "position": [
-        3064,
-        -176
+        3072,
+        -272
       ],
       "id": "86784fea-4c09-42df-b13d-dd20dc4e922a",
       "name": "Analyse Email"
     },
     {
       "parameters": {
-        "modelName": "models/gemini-3.5-flash-lite",
+        "modelName": "models/gemini-flash-lite-latest",
         "options": {}
       },
       "type": "@n8n/n8n-nodes-langchain.lmChatGoogleGemini",
       "typeVersion": 1.1,
       "position": [
         2976,
-        48
+        -32
       ],
       "id": "0081b8ed-b1c4-4c54-9cc2-3053b0ca7a29",
       "name": "Gemini Flash Lite (Primary)",
@@ -190,14 +191,14 @@
     },
     {
       "parameters": {
-        "modelName": "models/gemini-3.5-flash-lite",
+        "modelName": "models/gemini-3.1-flash-lite",
         "options": {}
       },
       "type": "@n8n/n8n-nodes-langchain.lmChatGoogleGemini",
       "typeVersion": 1.1,
       "position": [
-        3096,
-        40
+        3104,
+        -32
       ],
       "id": "5cf25b52-e347-4098-9f9d-8c50b0e6482b",
       "name": "Gemini Flash Lite (Fallback)",
@@ -216,8 +217,8 @@
       "type": "@n8n/n8n-nodes-langchain.outputParserStructured",
       "typeVersion": 1.3,
       "position": [
-        3352,
-        40
+        3360,
+        -32
       ],
       "id": "2081e2f0-5a7e-44cd-a0e7-5dfd851e11dd",
       "name": "Task Schema",
@@ -231,7 +232,7 @@
       "typeVersion": 2,
       "position": [
         3776,
-        -176
+        -160
       ],
       "id": "8ea0b8d5-7ddb-4ec5-a168-6bb2d1b5345a",
       "name": "Build Task Record"
@@ -253,7 +254,7 @@
       "typeVersion": 4.2,
       "position": [
         4000,
-        -176
+        -160
       ],
       "credentials": {
         "googleApi": {
@@ -284,7 +285,7 @@
       "typeVersion": 1,
       "position": [
         4224,
-        -176
+        -160
       ],
       "id": "fef688d3-b2d5-48e0-b5f2-d0c91d7ab80b",
       "name": "Archive Email (done)",
@@ -306,8 +307,8 @@
       "type": "n8n-nodes-base.emailSend",
       "typeVersion": 2.1,
       "position": [
-        4672,
-        -272
+        4448,
+        -256
       ],
       "id": "6e9baddc-6b5f-43a6-aa75-41e439466784",
       "name": "Notify Team",
@@ -315,7 +316,7 @@
       "credentials": {
         "smtp": {
           "id": "WnxNDGupXV0pfIh1",
-          "name": "SMTP account 2"
+          "name": "Gmail SMTP"
         }
       }
     },
@@ -331,7 +332,7 @@
       "typeVersion": 2.1,
       "position": [
         3776,
-        16
+        32
       ],
       "id": "3087de3c-1a84-47ad-a181-f2084a4e3187",
       "name": "Reply: Not a Task",
@@ -365,7 +366,7 @@
       "typeVersion": 1,
       "position": [
         4000,
-        16
+        32
       ],
       "id": "1c6f5d10-bfe2-42cc-abcd-4367b80956c6",
       "name": "Flag Email (rejected)",
@@ -388,7 +389,7 @@
       "typeVersion": 2.1,
       "position": [
         3152,
-        224
+        176
       ],
       "id": "bce3eafb-f186-465f-8c88-c7a906bd3c4b",
       "name": "Reply: Limit Reached",
@@ -396,7 +397,7 @@
       "credentials": {
         "smtp": {
           "id": "WnxNDGupXV0pfIh1",
-          "name": "SMTP account 2"
+          "name": "Gmail SMTP"
         }
       }
     },
@@ -422,7 +423,7 @@
       "typeVersion": 1,
       "position": [
         3552,
-        224
+        176
       ],
       "id": "50931496-f296-4c1b-9e59-0b353dbd3401",
       "name": "Flag Email (limit)",
@@ -436,27 +437,25 @@
     },
     {
       "parameters": {
-        "method": "POST",
-        "url": "=https://join-backend-635a8-default-rtdb.europe-west1.firebasedatabase.app/triggerCounter/{{ $today.toFormat('yyyy-MM-dd') }}.json",
-        "authentication": "predefinedCredentialType",
-        "nodeCredentialType": "googleApi",
-        "sendBody": true,
-        "specifyBody": "json",
-        "jsonBody": "={\n  \"at\": \"{{ $now.toISO() }}\",\n  \"mailUid\": \"{{ $('Email Trigger (IMAP)').item.json.attributes.uid }}\"\n}",
+        "fromEmail": "no-reply@domain.ch",
+        "toEmail": "={{ $('Email Trigger (IMAP)').item.json.from.value[0].address }}",
+        "subject": "=Ticket in proccess",
+        "html": "=Hi, \n<br><br>\nYour ticket has been successfully added to our system.\n<br><br>\nWe will process it as soon as possible.\n<br>\nYou will receive an automatic status update each time.\n<br><br>\nBest regards <br>\nThe Join team",
         "options": {}
       },
-      "id": "22d9361c-80a0-4154-82bd-79fe23b5a932",
-      "name": "Count Request (task)",
-      "type": "n8n-nodes-base.httpRequest",
-      "typeVersion": 4.2,
+      "type": "n8n-nodes-base.emailSend",
+      "typeVersion": 2.1,
       "position": [
         4448,
-        -176
+        -64
       ],
+      "id": "912a0dae-cd13-4b91-900d-a5a568d14760",
+      "name": "Notify sender",
+      "webhookId": "e27c319b-b355-4c2a-9b51-3424b80cb565",
       "credentials": {
-        "googleApi": {
-          "id": "gOdSO7heKJ3INtfN",
-          "name": "Google Service Account account"
+        "smtp": {
+          "id": "WnxNDGupXV0pfIh1",
+          "name": "Gmail SMTP"
         }
       }
     },
@@ -472,41 +471,17 @@
         "options": {}
       },
       "id": "5c0b24af-6637-4600-aa82-9c9f4cbaa43b",
-      "name": "Count Request (rejected)",
+      "name": "Count Request",
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
       "position": [
-        4224,
-        16
+        3552,
+        -256
       ],
       "credentials": {
         "googleApi": {
           "id": "gOdSO7heKJ3INtfN",
           "name": "Google Service Account account"
-        }
-      }
-    },
-    {
-      "parameters": {
-        "fromEmail": "no-reply@domain.ch",
-        "toEmail": "={{ $('Email Trigger (IMAP)').item.json.from.value[0].address }}",
-        "subject": "=Ticket in proccess",
-        "html": "=Hi, \n<br><br>\nYour ticket has been successfully added to our system.\n<br><br>\nWe will process it as soon as possible.\n<br>\nYou will receive an automatic status update each time.\n<br><br>\nBest regards <br>\nThe Join team",
-        "options": {}
-      },
-      "type": "n8n-nodes-base.emailSend",
-      "typeVersion": 2.1,
-      "position": [
-        4672,
-        -80
-      ],
-      "id": "912a0dae-cd13-4b91-900d-a5a568d14760",
-      "name": "Notify sender",
-      "webhookId": "e27c319b-b355-4c2a-9b51-3424b80cb565",
-      "credentials": {
-        "smtp": {
-          "id": "WnxNDGupXV0pfIh1",
-          "name": "SMTP account 2"
         }
       }
     }
@@ -597,6 +572,11 @@
       "main": [
         [
           {
+            "node": "Count Request",
+            "type": "main",
+            "index": 0
+          },
+          {
             "node": "Task detected?",
             "type": "main",
             "index": 0
@@ -663,7 +643,12 @@
       "main": [
         [
           {
-            "node": "Count Request (task)",
+            "node": "Notify Team",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Notify sender",
             "type": "main",
             "index": 0
           }
@@ -683,13 +668,7 @@
     },
     "Flag Email (rejected)": {
       "main": [
-        [
-          {
-            "node": "Count Request (rejected)",
-            "type": "main",
-            "index": 0
-          }
-        ]
+        []
       ]
     },
     "Reply: Limit Reached": {
@@ -703,20 +682,9 @@
         ]
       ]
     },
-    "Count Request (task)": {
+    "Count Request": {
       "main": [
-        [
-          {
-            "node": "Notify Team",
-            "type": "main",
-            "index": 0
-          },
-          {
-            "node": "Notify sender",
-            "type": "main",
-            "index": 0
-          }
-        ]
+        []
       ]
     }
   },
@@ -725,7 +693,7 @@
     "executionOrder": "v1",
     "binaryMode": "separate"
   },
-  "versionId": "384eae00-4a39-49b1-8962-e863512c53b2",
+  "versionId": "2024a739-ea3c-4e3a-9758-c88aec8360e5",
   "meta": {
     "templateCredsSetupCompleted": true,
     "instanceId": "a8acb594be7d57707b90d3d29c4695b9734d908caaf216a819ede99db3d561b4"
