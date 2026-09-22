@@ -82,7 +82,6 @@ input.find-task {
 }
 
 .progress-board {
-  justify-content: space-between;
   gap: 40px;
   display: flex;
   margin-top: 80px;
@@ -306,6 +305,7 @@ input.find-task {
 
 .scroll-arrow {
   width: 100%;
+  max-width: 240px;
   height: 28px;
   border-radius: 10px;
   border: 1px solid #ddd;
