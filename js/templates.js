@@ -319,9 +319,9 @@ function getAddTaskDialogTemplate(status) {
  * @param {number} totalSubtasks - The total number of subtasks
  * @param {string} visibility - CSS class to show or hide the progress bar
  * @param {number} progress - The progress percentage (0-100)
- * @returns {Promise<string>} HTML string of the task card
+ * @returns {string} HTML string of the task card
  */
-async function getToDoTemplate(
+function getToDoTemplate(
   element,
   solvedSubtasks,
   totalSubtasks,
@@ -350,7 +350,7 @@ async function getToDoTemplate(
 
   <div class="task-footer">
     <div class="avatars">
-      ${await getAssignedToAvatars(element.assignedTo)}
+      ${getAssignedToAvatars(element.assignedTo)}
     </div>
     <span><img src="./assets/icons/priority-${element["priority"]}.svg" /></span>
   </div>

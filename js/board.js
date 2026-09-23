@@ -1,5 +1,6 @@
 let currentEditTaskId = null;
 let tasks = [];
+let contactsById = {};
 
 const COLUMNS = ["triage", "toDo", "inProgress", "await", "done"];
 const PRIORITIES = ["urgent", "medium", "low"];
@@ -46,11 +47,20 @@ let dragPointer = { x: 0, y: 0 };
  */
 async function initBoard(site) {
   init(site);
-  await initTasks();
-  await renderAll();
+  await Promise.all([initTasks(), initContacts()]);
+  renderAll();
   document.addEventListener("click", handleOutsideClick);
   window.addEventListener("resize", updateScrollArrows);
   initDragAndDrop();
+}
+
+/**
+ * Loads all contacts once, so the card avatars can be rendered without a
+ * database request per card.
+ * @returns {Promise<void>}
+ */
+async function initContacts() {
+  contactsById = (await loadData("/contacts")) ?? {};
 }
 
 /**
@@ -102,10 +112,10 @@ function normalizeTask(id, task) {
 
 /**
  * Renders all task sections on the board.
- * @returns {Promise<void>}
+ * @returns {void}
  */
-async function renderAll() {
-  for (const section of COLUMNS) await renderSection(section);
+function renderAll() {
+  for (const section of COLUMNS) renderSection(section);
   updateNoTaskPlaceholders();
   updateScrollArrows();
 }
@@ -113,34 +123,49 @@ async function renderAll() {
 /**
  * Render all Tasks for a given status column.
  * @param {string} section - The column name (e.g. "toDo", "inProgress")
- * @returns {Promise<void>}
+ * @returns {void}
  */
-async function renderSection(section) {
+function renderSection(section) {
+  renderTaskCards(
+    section,
+    tasks.filter((t) => t.status === section),
+  );
+}
+
+/**
+ * Writes the cards of a column in a single DOM update.
+ * @param {string} section - The column name
+ * @param {Object[]} sectionTasks - The tasks to show in that column
+ * @returns {void}
+ */
+function renderTaskCards(section, sectionTasks) {
   const container = document.getElementById(section);
-  container.innerHTML = "";
-  const taskStatus = tasks.filter((t) => t["status"] == section);
+  container.innerHTML = sectionTasks.map(getTaskCardHTML).join("");
+}
 
-  for (let i = 0; i < taskStatus.length; i++) {
-    const element = taskStatus[i];
-    const [solved, total, visibility] = await getSubtaskData(element);
-
-    container.innerHTML += await getToDoTemplate(
-      element,
-      solved,
-      total,
-      visibility,
-      calcSubtaskProgress(solved, total),
-    );
-  }
+/**
+ * Returns the card HTML for a single task.
+ * @param {Object} task - The task object
+ * @returns {string} HTML string of the task card
+ */
+function getTaskCardHTML(task) {
+  const [solved, total, visibility] = getSubtaskData(task);
+  return getToDoTemplate(
+    task,
+    solved,
+    total,
+    visibility,
+    calcSubtaskProgress(solved, total),
+  );
 }
 
 /**
  * Renders the given columns and updates the placeholders.
  * @param  {...string} columns - Column names to re-render
- * @returns {Promise<void>}
+ * @returns {void}
  */
-async function reRenderColumns(...columns) {
-  for (const col of columns) await renderSection(col);
+function reRenderColumns(...columns) {
+  for (const col of columns) renderSection(col);
   updateNoTaskPlaceholders();
   updateScrollArrows();
 }
@@ -244,7 +269,7 @@ async function applyTaskMove(taskId, newStatus) {
     task.status = oldStatus;
   }
   if (saved) await queueStatusNotification(task, oldStatus, newStatus);
-  await reRenderColumns(oldStatus, newStatus);
+  reRenderColumns(oldStatus, newStatus);
 }
 
 /**
@@ -664,26 +689,15 @@ async function findTask() {
       t.description.toLowerCase().includes(query),
   );
 
-  await renderFilteredTasks(matches);
+  renderFilteredTasks(matches);
 }
 
-async function renderFilteredTasks(filteredTasks) {
+function renderFilteredTasks(filteredTasks) {
   for (const section of COLUMNS) {
-    const container = document.getElementById(section);
-    container.innerHTML = "";
-
-    const sectionTasks = filteredTasks.filter((t) => t.status === section);
-
-    for (const element of sectionTasks) {
-      const [solved, total, visibility] = await getSubtaskData(element);
-      container.innerHTML += await getToDoTemplate(
-        element,
-        solved,
-        total,
-        visibility,
-        calcSubtaskProgress(solved, total),
-      );
-    }
+    renderTaskCards(
+      section,
+      filteredTasks.filter((t) => t.status === section),
+    );
   }
   updateNoTaskPlaceholders();
   updateScrollArrows();

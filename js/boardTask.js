@@ -28,7 +28,7 @@ async function closeDialogBoard(section) {
   const dialogBoard = document.getElementById("openDialogBoard");
   dialogBoard.close();
   document.querySelector("body > main").style.overflowY = "";
-  await renderSection(section);
+  renderSection(section);
 }
 
 /**
@@ -49,47 +49,23 @@ async function deleteTask(id) {
 /**
  * Returns the subtask progress data for a given task.
  * @param {Object} element - The task object
- * @returns {Promise<Array>} Array of [solved, total, visibility]
+ * @returns {Array} Array of [solved, total, visibility]
  */
-async function getSubtaskData(element) {
-  const solved = await getAmountSolvedSubtasks(element["id"]);
-  const total = await getNumberOfSubtasks(element["id"]);
+function getSubtaskData(element) {
+  const subtasks = normalizeList(element.subtasks);
+  const solved = subtasks.filter((s) => s.completed == true).length;
+  const total = subtasks.length;
   let visibility = "";
   if (total != 0) visibility = "show";
   return [solved, total, visibility];
 }
 
 /**
- * Returns the number of completed subtasks for a given task.
- * @param {string} taskID - The ID of the task
- * @returns {Promise<string>} The amount of completed subtasks as a string
- */
-async function getAmountSolvedSubtasks(taskID) {
-  const task = await loadData("/tasks/" + taskID);
-  const subtasks = normalizeList(task?.subtasks);
-  let amount = 0;
-  for (let i = 0; i < subtasks.length; i++) {
-    if (subtasks[i]["completed"] == true) amount++;
-  }
-  return String(amount);
-}
-
-/**
- * Returns the total number of subtasks for a given task.
- * @param {string} taskID - The ID of the task
- * @returns {Promise<number>} The total number of subtasks
- */
-async function getNumberOfSubtasks(taskID) {
-  const task = await loadData("/tasks/" + taskID);
-  return normalizeList(task?.subtasks).length;
-}
-
-/**
  * Returns the avatar HTML for all members assigned to a task.
  * @param {Object[]} allMembersOfThisTask - Array of assigned member objects
- * @returns {Promise<string>} HTML string of avatar elements
+ * @returns {string} HTML string of avatar elements
  */
-async function getAssignedToAvatars(allMembersOfThisTask) {
+function getAssignedToAvatars(allMembersOfThisTask) {
   let members = [];
   if (allMembersOfThisTask == undefined) return "";
   const limit = 3;
@@ -98,7 +74,7 @@ async function getAssignedToAvatars(allMembersOfThisTask) {
 
   for (let i = 0; i < displayCount; i++) {
     const memberID = allMembersOfThisTask[i].id;
-    members.push(await getMemberAvatar(memberID));
+    members.push(getMemberAvatar(memberID));
   }
 
   if (totalMembers > limit) {
@@ -112,11 +88,11 @@ async function getAssignedToAvatars(allMembersOfThisTask) {
 
 /**
  * Returns the avatar HTML for a single contact by ID.
- * @param {string} id - The contact ID to load the avatar for
- * @returns {Promise<string>} HTML string of the avatar element
+ * @param {string} id - The contact ID to show the avatar for
+ * @returns {string} HTML string of the avatar element
  */
-async function getMemberAvatar(id) {
-  const member = await loadData("/contacts/" + id);
+function getMemberAvatar(id) {
+  const member = contactsById[id];
   if (!member) return "";
 
   const name = member.name;
