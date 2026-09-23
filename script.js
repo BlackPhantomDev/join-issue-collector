@@ -2,6 +2,7 @@ const loginSignupSection = document.getElementById("login-signup-section");
 const signupBtn = document.getElementById("signup");
 const messageElement = document.getElementById("message-box");
 const sidebar = document.getElementById("sidebar");
+let sidebarPage = "";
 
 const animatedImgWrapper = document.getElementById("animated-img-wrapper");
 const navLogo = document.getElementById("navbar-logo");
@@ -77,9 +78,20 @@ document.addEventListener("keydown", (e) => {
  * Initializes the page by generating the topbar and loading the sidebar.
  * @param {string} site - The current page identifier
  */
-function init(site, withSidebar = true) {
+function init(site) {
   generateTopbar();
-  if (withSidebar) loadSidebar(site);
+  loadSidebar(site);
+}
+
+/**
+ * Stores the resolved authentication state and redraws everything that depends
+ * on it. Called by the auth listener once Firebase knows who the visitor is.
+ * @param {"signed-in"|"signed-out"} state - The resolved authentication state
+ */
+function setAuthState(state) {
+  window.authState = state;
+  renderUserMenue();
+  renderSidebar();
 }
 
 /**
@@ -105,11 +117,13 @@ function generateTopbar() {
 }
 
 /**
- * Renders the topbar template into the topbar element.
+ * Renders the topbar template into the topbar element and draws the user menu
+ * in case the auth state resolved before the topbar existed.
  */
 function setTopbar() {
   const topbar = document.getElementById("topbar");
   topbar.innerHTML = getTopbarTemplate();
+  renderUserMenue();
 }
 
 /**
@@ -150,10 +164,30 @@ function showMessage(message) {
 }
 
 /**
- * Loads the sidebar with the active navigation link for the given page.
+ * Remembers the current page and renders the sidebar for it.
  * @param {string} page - The current page identifier (e.g. "summary", "board")
  */
 function loadSidebar(page) {
+  sidebarPage = page;
+  renderSidebar();
+}
+
+/**
+ * Renders the sidebar variant matching the resolved auth state. Does nothing
+ * while the page or the auth state is still unknown, so it can be called from
+ * both the auth listener and the page initialization.
+ */
+function renderSidebar() {
+  if (!sidebar || !sidebarPage || !window.authState) return;
+
+  if (window.authState === "signed-out") renderGuestSidebar();
+  else renderMemberSidebar();
+}
+
+/**
+ * Renders the full sidebar with the active navigation link for the current page.
+ */
+function renderMemberSidebar() {
   const map = {
     summary: ["active", "", "", "", "", ""],
     addtask: ["", "active", "", "", "", ""],
@@ -162,18 +196,17 @@ function loadSidebar(page) {
     privacy: ["", "", "", "", "active", ""],
     legal: ["", "", "", "", "", "active"],
   };
-  const args = map[page] || ["", "", "", "", "", ""];
+  const args = map[sidebarPage] || ["", "", "", "", "", ""];
+  sidebar.classList.remove("guest-sidebar");
   sidebar.innerHTML = getSidebarTemplate(...args);
 }
 
 /**
- * Replaces the sidebar with a guest-only version showing just the login link
- * and privacy/legal links. Called by authGuard for unauthenticated users on public pages.
+ * Renders the guest sidebar showing just the login link and privacy/legal links.
  */
-function switchToGuestSidebar() {
-  const path = window.location.pathname;
-  const privacy = path.includes("privacy") ? "active" : "";
-  const legal = path.includes("legal") ? "active" : "";
+function renderGuestSidebar() {
+  const privacy = sidebarPage === "privacy" ? "active" : "";
+  const legal = sidebarPage === "legal" ? "active" : "";
   sidebar.classList.add("guest-sidebar");
   sidebar.innerHTML = getSidebarGuestTemplate(privacy, legal);
 }
@@ -193,18 +226,16 @@ function getInitials(name) {
 
 /**
  * Renders the user menu with the current user's initials and avatar color.
+ * Does nothing while the topbar or the current user is still missing, so it can
+ * be called from both the auth listener and the topbar rendering.
  */
 function renderUserMenue() {
   const user = window.currentUser;
   const um = document.getElementById("user-menue");
-  if (!um) return;
+  if (!um || !user) return;
 
-  if (!user) um.innerText = "G";
-  else {
-    const initials = getInitials(user.name);
-    um.style.backgroundColor = user.avatarColor;
-    um.innerText = initials;
-  }
+  um.style.backgroundColor = user.avatarColor;
+  um.innerText = getInitials(user.name);
   um.classList.add("show");
 }
 

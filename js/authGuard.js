@@ -27,8 +27,18 @@ const publicPaths = [
 const path = window.location.pathname;
 
 /**
+ * Publishes the resolved auth state so the topbar and sidebar can render it.
+ * Tolerates pages that do not load script.js, such as the stakeholder page.
+ * @param {"signed-in"|"signed-out"} state - The resolved authentication state
+ * @returns {void}
+ */
+function publishAuthState(state) {
+  if (typeof setAuthState === "function") setAuthState(state);
+}
+
+/**
  * Loads the authenticated user's data from Firebase and sets the global current user.
- * Redirects to summary page if on a home path, or loads the sidebar for public paths.
+ * Redirects to the summary page if on a home path.
  * @async
  * @param {Object} user - The Firebase authenticated user object
  * @param {string} path - The current page path
@@ -40,29 +50,22 @@ async function handleAuthenticatedUser(user, path) {
   const { contactId } = snapshot.val();
   const contactSnap = await get(ref(db, `contacts/${contactId}`));
   window.currentUser = { ...contactSnap.val(), id: contactId };
-  renderUserMenue();
+  publishAuthState("signed-in");
   if (path.includes("login.html")) {
     window.location.href = "./summary.html";
-  } else if (publicPaths.includes(path)) {
-    const page = path.includes("privacy")
-      ? "privacy"
-      : path.includes("legal")
-        ? "legal"
-        : "help";
-    if (typeof loadSidebar === "function") loadSidebar(page);
   }
 }
 
 /**
  * Handles routing for unauthenticated users.
- * Shows guest sidebar on public paths or redirects to index if on a protected path.
+ * Redirects to index if on a protected path, otherwise leaves the page in place
+ * so the guest sidebar can render.
  * @param {string} path - The current page path
  * @returns {void}
  */
 function handleUnauthenticatedUser(path) {
-  if (publicPaths.includes(path)) {
-    if (typeof switchToGuestSidebar === "function") switchToGuestSidebar();
-  } else if (!homePaths.includes(path)) {
+  publishAuthState("signed-out");
+  if (!publicPaths.includes(path) && !homePaths.includes(path)) {
     window.location.href = "./index.html";
   }
 }
@@ -78,20 +81,9 @@ onAuthStateChanged(auth, async (user) => {
   if (user) {
     if (user.isAnonymous) {
       window.currentUser = { name: "Guest" };
-      renderUserMenue();
+      publishAuthState("signed-in");
       if (path.includes("login.html")) {
         window.location.href = "./summary.html";
-      } else if (
-        path.includes("privacy") ||
-        path.includes("legal") ||
-        path.includes("help")
-      ) {
-        const page = path.includes("privacy")
-          ? "privacy"
-          : path.includes("legal")
-            ? "legal"
-            : "help";
-        if (typeof loadSidebar === "function") loadSidebar(page);
       }
       return;
     }
