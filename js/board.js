@@ -57,6 +57,7 @@ async function initBoard(site) {
   await Promise.all([initTasks(), initContacts()]);
   renderAll();
   document.addEventListener("click", handleOutsideClick);
+  document.addEventListener("keydown", handleDialogBoardEscape);
   initScrollArrows();
   initDragAndDrop();
 }

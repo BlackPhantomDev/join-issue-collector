@@ -15,7 +15,9 @@ async function openDialogBoard(id) {
     assignedContacts,
     element.subtasks,
   );
-  dialogBoard.showModal();
+  dialogBoard.dataset.mode = "preview";
+  dialogBoard.dataset.section = element.status;
+  if (!dialogBoard.open) dialogBoard.showModal();
   document.querySelector("body > main").style.overflowY = "hidden";
 }
 
@@ -29,6 +31,19 @@ async function closeDialogBoard(section) {
   dialogBoard.close();
   document.querySelector("body > main").style.overflowY = "";
   renderSection(section);
+}
+
+/**
+ * Closes the task preview on Escape. The edit mode of the same dialog stays
+ * protected by the global Escape block, so unsaved changes are not lost.
+ * @param {KeyboardEvent} event - The keydown event
+ * @returns {void}
+ */
+function handleDialogBoardEscape(event) {
+  const dialogBoard = document.getElementById("openDialogBoard");
+  if (event.key !== "Escape" || !dialogBoard?.open) return;
+  if (dialogBoard.dataset.mode !== "preview") return;
+  closeDialogBoard(dialogBoard.dataset.section);
 }
 
 /**
@@ -192,6 +207,7 @@ function checkIfSubtasksAvaiable(subtasks, taskID) {
  */
 async function openEditTask(taskId) {
   currentEditTaskId = taskId;
+  document.getElementById("openDialogBoard").dataset.mode = "edit";
   const element = tasks.find((t) => t.id === taskId);
   const assignedContacts = await getAssignedContacts(element.assignedTo);
   const allContacts = await loadData("/contacts");
