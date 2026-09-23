@@ -326,10 +326,15 @@ input.find-task {
   flex-shrink: 0;
 }
 
-.scroll-arrow:hover {
+.scroll-arrow:hover:not(:disabled) {
   background-color: #f0f0f0;
   border-color: #999;
   color: #333;
+}
+
+.scroll-arrow:disabled {
+  opacity: 0.35;
+  cursor: default;
 }
 
 .scroll-arrow.hidden {

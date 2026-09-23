@@ -39,6 +39,13 @@ const AUTO_SCROLL_STEP = 16;
 
 let autoScrollFrame = null;
 let dragPointer = { x: 0, y: 0 };
+let arrowFrame = null;
+
+/**
+ * Watches the columns and their cards for size changes, because late loading
+ * icons and fonts change the card heights after the first render.
+ */
+const arrowObserver = new ResizeObserver(scheduleScrollArrowUpdate);
 
 /**
  * Initializes the board by running setup, loading tasks and rendering.
@@ -50,7 +57,7 @@ async function initBoard(site) {
   await Promise.all([initTasks(), initContacts()]);
   renderAll();
   document.addEventListener("click", handleOutsideClick);
-  window.addEventListener("resize", updateScrollArrows);
+  initScrollArrows();
   initDragAndDrop();
 }
 
@@ -133,14 +140,21 @@ function renderSection(section) {
 }
 
 /**
- * Writes the cards of a column in a single DOM update.
+ * Writes the cards of a column in a single DOM update and hands them to the
+ * arrow observer.
  * @param {string} section - The column name
  * @param {Object[]} sectionTasks - The tasks to show in that column
  * @returns {void}
  */
 function renderTaskCards(section, sectionTasks) {
   const container = document.getElementById(section);
+  container
+    .querySelectorAll(".task-card")
+    .forEach((card) => arrowObserver.unobserve(card));
   container.innerHTML = sectionTasks.map(getTaskCardHTML).join("");
+  container
+    .querySelectorAll(".task-card")
+    .forEach((card) => arrowObserver.observe(card));
 }
 
 /**
@@ -544,7 +558,36 @@ function scrollNearEdge(container, axis, position, start, end) {
    ========================================================= */
 
 /**
- * Scrolls a column's task-cards container.
+ * Keeps the scroll arrows in sync with every way a column can scroll or
+ * change its size: arrow clicks, touch, trackpad, mouse wheel and resizing.
+ * @returns {void}
+ */
+function initScrollArrows() {
+  for (const col of COLUMNS) {
+    const container = document.getElementById(col);
+    if (!container) continue;
+    container.addEventListener("scroll", scheduleScrollArrowUpdate, {
+      passive: true,
+    });
+    arrowObserver.observe(container);
+  }
+  window.addEventListener("resize", scheduleScrollArrowUpdate);
+}
+
+/**
+ * Updates the scroll arrows at most once per animation frame.
+ * @returns {void}
+ */
+function scheduleScrollArrowUpdate() {
+  if (arrowFrame !== null) return;
+  arrowFrame = requestAnimationFrame(() => {
+    arrowFrame = null;
+    updateScrollArrows();
+  });
+}
+
+/**
+ * Scrolls a column's task-cards container by roughly one card.
  * Desktop: vertical, Mobile: horizontal.
  * @param {string} columnId - e.g. "toDo"
  * @param {number} direction - -1 = up/left, 1 = down/right
@@ -560,76 +603,58 @@ function scrollColumn(columnId, direction) {
   } else {
     container.scrollBy({ top: direction * scrollAmount, behavior: "smooth" });
   }
-  setTimeout(() => updateScrollArrows(), 400);
 }
 
 /**
- * Updates scroll arrow visibility for all board columns based on scroll position and overflow.
- * Delegates to mobile or desktop handler depending on screen width.
+ * Updates the scroll arrows of all board columns.
  * @returns {void}
  */
 function updateScrollArrows() {
-  for (const col of COLUMNS) {
-    const container = document.getElementById(col);
-    const body = document.querySelector(
-      `.board-task-body[data-column="${col}"]`,
-    );
-    if (!container || !body) continue;
-
-    const arrowUp = body.querySelector(".arrow-up");
-    const arrowDown = body.querySelector(".arrow-down");
-    if (!arrowUp || !arrowDown) continue;
-
-    const isMobile = isStackedLayout();
-
-    if (isMobile) {
-      handleMobileArrows(container, arrowUp, arrowDown);
-    } else {
-      handleDesktopArrows(container, arrowUp, arrowDown);
-    }
-  }
+  for (const col of COLUMNS) updateColumnArrows(col);
 }
 
 /**
- * Shows or hides scroll arrows for horizontal (mobile) scroll containers.
- * @param {HTMLElement} container - The scrollable column container
- * @param {HTMLElement} arrowUp - The left scroll arrow element
- * @param {HTMLElement} arrowDown - The right scroll arrow element
+ * Shows both arrows of a column while its cards overflow and disables the
+ * arrow pointing towards an edge that is already reached. The arrows keep
+ * their space while scrolling, so the cards do not jump sideways whenever
+ * one of them would otherwise appear or disappear.
+ * @param {string} col - The column ID
  * @returns {void}
  */
-function handleMobileArrows(container, arrowUp, arrowDown) {
-  const hasOverflow = container.scrollWidth > container.clientWidth + 2;
-  if (!hasOverflow) {
-    arrowUp.classList.add("hidden");
-    arrowDown.classList.add("hidden");
-  } else {
-    arrowUp.classList.toggle("hidden", container.scrollLeft <= 2);
-    arrowDown.classList.toggle(
-      "hidden",
-      container.scrollLeft + container.clientWidth >= container.scrollWidth - 2,
-    );
-  }
+function updateColumnArrows(col) {
+  const container = document.getElementById(col);
+  const body = container?.closest(".board-task-body");
+  const arrowUp = body?.querySelector(".arrow-up");
+  const arrowDown = body?.querySelector(".arrow-down");
+  if (!arrowUp || !arrowDown) return;
+
+  const { position, visible, total } = getScrollMetrics(container);
+  const hasOverflow = total > visible + 2;
+  arrowUp.classList.toggle("hidden", !hasOverflow);
+  arrowDown.classList.toggle("hidden", !hasOverflow);
+  arrowUp.disabled = position <= 2;
+  arrowDown.disabled = position + visible >= total - 2;
 }
+
 /**
- * Shows or hides scroll arrows for vertical (desktop) scroll containers.
+ * Returns the scroll state of a column along the axis it scrolls on.
+ * Desktop columns scroll vertically, stacked columns horizontally.
  * @param {HTMLElement} container - The scrollable column container
- * @param {HTMLElement} arrowUp - The upward scroll arrow element
- * @param {HTMLElement} arrowDown - The downward scroll arrow element
- * @returns {void}
+ * @returns {{position: number, visible: number, total: number}} Scroll offset, visible size and content size
  */
-function handleDesktopArrows(container, arrowUp, arrowDown) {
-  const hasOverflow = container.scrollHeight > container.clientHeight + 2;
-  if (!hasOverflow) {
-    arrowUp.classList.add("hidden");
-    arrowDown.classList.add("hidden");
-  } else {
-    arrowUp.classList.toggle("hidden", container.scrollTop <= 2);
-    arrowDown.classList.toggle(
-      "hidden",
-      container.scrollTop + container.clientHeight >=
-        container.scrollHeight - 2,
-    );
+function getScrollMetrics(container) {
+  if (isStackedLayout()) {
+    return {
+      position: container.scrollLeft,
+      visible: container.clientWidth,
+      total: container.scrollWidth,
+    };
   }
+  return {
+    position: container.scrollTop,
+    visible: container.clientHeight,
+    total: container.scrollHeight,
+  };
 }
 
 /* =========================================================
