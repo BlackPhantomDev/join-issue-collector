@@ -588,6 +588,19 @@ function scheduleScrollArrowUpdate() {
 }
 
 /**
+ * Returns the distance of one card step in the stacked layout. Cards share one
+ * width there, so a step lands the next card flush against the column edge.
+ * @param {HTMLElement} container - The scrollable task-cards container
+ * @returns {number} Distance in pixels
+ */
+function getCardStep(container) {
+  const card = container.querySelector(".task-card");
+  if (!card) return 260;
+  const gap = parseFloat(getComputedStyle(container).columnGap) || 0;
+  return card.getBoundingClientRect().width + gap;
+}
+
+/**
  * Scrolls a column's task-cards container by roughly one card.
  * Desktop: vertical, Mobile: horizontal.
  * @param {string} columnId - e.g. "toDo"
@@ -597,7 +610,7 @@ function scrollColumn(columnId, direction) {
   const container = document.getElementById(columnId);
   if (!container) return;
   const isMobile = isStackedLayout();
-  const scrollAmount = isMobile ? 260 : 280;
+  const scrollAmount = isMobile ? getCardStep(container) : 280;
 
   if (isMobile) {
     container.scrollBy({ left: direction * scrollAmount, behavior: "smooth" });
