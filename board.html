@@ -17,10 +17,10 @@
       <h1>Board</h1>
       <div class="search-wrapper">
         <div class="search-input-group">
-          <input id="searchTask" class="find-task" type="text" role="search" placeholder="Find Task"
-            oninput="findTask()" />
-          <div id="search-spacer"></div>
-          <button class="search-btn" onclick="findTask()">
+          <input id="search-task-desktop" name="search" class="find-task" type="search"
+            aria-label="Find Task" placeholder="Find Task" oninput="findTask(this)" />
+          <div class="search-spacer"></div>
+          <button class="search-btn" onclick="findTask(this)">
             <img src="./assets/icons/search.svg" class="search-icon" />
           </button>
         </div>
@@ -37,10 +37,10 @@
       </div>
       <div class="search-wrapper">
         <div class="search-input-group">
-          <input id="searchTask" class="find-task" type="text" role="search" placeholder="Find Task"
-            oninput="findTask()" />
-          <div id="search-spacer"></div>
-          <button class="search-btn" onclick="findTask()">
+          <input id="search-task-mobile" name="search" class="find-task" type="search"
+            aria-label="Find Task" placeholder="Find Task" oninput="findTask(this)" />
+          <div class="search-spacer"></div>
+          <button class="search-btn" onclick="findTask(this)">
             <img src="./assets/icons/search.svg" class="search-icon" />
           </button>
         </div>

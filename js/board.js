@@ -701,8 +701,16 @@ async function getAssignedContacts(assignedTo) {
    SEARCH / FILTER
    ========================================================= */
 
-async function findTask() {
-  const query = document.getElementById("searchTask").value.toLowerCase();
+/**
+ * Filters the board by the query of the search bar the event came from.
+ * The desktop and the mobile bar both exist in the DOM, so the field is taken
+ * from the triggering element instead of being looked up globally.
+ * @param {HTMLElement} source - The input or button that triggered the search
+ * @returns {Promise<void>}
+ */
+async function findTask(source) {
+  const field = source?.closest(".search-input-group")?.querySelector(".find-task");
+  const query = field ? field.value.toLowerCase() : "";
 
   if (query.length < 1) {
     renderAll();
