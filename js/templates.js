@@ -452,7 +452,7 @@ function getCreatorTemplate(creator) {
         </span>
         <span class="creator-main">
             <span class="creator-label">Creator:</span>
-            <span class="creator-name">${creator.name}</span>
+            <span class="creator-name" title="${creator.name}">${creator.name}</span>
             ${getCreatorActionTemplate(creator, isExtern)}
         </span>
     </p>`;

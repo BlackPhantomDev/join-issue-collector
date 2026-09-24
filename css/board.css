@@ -454,7 +454,7 @@ dialog#openDialogBoard .category-badge {
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  font-size: 14px;
+  font-size: 16px;
   white-space: nowrap;
 }
 
@@ -499,7 +499,7 @@ dialog#openDialogBoard .creator-label {
   gap: 4px;
   padding: 2px 8px;
   border-radius: var(--border-radius);
-  font-size: 14px;
+  font-size: 16px;
   white-space: nowrap;
 }
 
@@ -520,15 +520,18 @@ dialog#openDialogBoard .creator-label {
 
 .creator-name {
   min-width: 0;
-  overflow-wrap: anywhere;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .creator-action {
   display: inline-flex;
   align-items: center;
+  flex-shrink: 0;
   gap: 4px;
   margin-left: auto;
-  font-size: 14px;
+  font-size: 16px;
   color: var(--menu-color);
   white-space: nowrap;
 }
