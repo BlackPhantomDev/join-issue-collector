@@ -495,6 +495,7 @@ main {
   .board-task-body {
     flex-direction: row;
     align-items: center;
+    margin-right: 0;
   }
 
   .task-cards {
@@ -504,6 +505,11 @@ main {
     overflow-y: visible;
     scrollbar-width: none;
     -ms-overflow-style: none;
+  }
+
+  .task-card {
+    flex: 0 0 min(240px, 100%);
+    min-width: 0;
   }
 
   .task-cards::-webkit-scrollbar {
@@ -519,7 +525,7 @@ main {
 
   .arrow-up {
     margin-bottom: 0;
-    margin-right: 16px;
+    margin-right: 8px;
   }
 
   .arrow-up svg {
@@ -528,7 +534,7 @@ main {
 
   .arrow-down {
     margin-top: 0;
-    margin-left: 16px;
+    margin-left: 8px;
   }
 
   .arrow-down svg {
@@ -543,7 +549,7 @@ main {
 
 @media (max-width: 575px) {
   dialog#openDialogBoard {
-    padding: 20px;
+    padding: 20px 12px;
   }
 
   dialog#openDialogBoard h2 {
@@ -555,24 +561,71 @@ main {
     min-width: 90px;
   }
 
+  .task-card {
+    padding: 20px 12px;
+  }
+
+  .summary_grid {
+    padding-top: 32px;
+    gap: 16px;
+  }
+
   .summary_row_first,
   .summary_row_middle,
   .summary_row_last {
-    display: flex;
-    flex-direction: column;
     gap: 16px;
+  }
+
+  .summary_bubble {
+    padding: 12px;
+    border-radius: 20px;
+    gap: 10px;
+  }
+
+  .summary_bubble svg,
+  .summary_bubble img {
+    width: 34px;
+    height: 34px;
+  }
+
+  .summary_counter {
+    font-size: 16px;
+  }
+
+  #deadline-bubble .summary_counter {
+    font-size: 14px;
+  }
+
+  #todo_count,
+  #done_count,
+  #board_count,
+  #progress_count,
+  #feedback_count,
+  #urgent_count,
+  #email_count {
+    font-size: 36px;
+  }
+
+  #deadline {
+    font-size: 16px;
+  }
+
+  #all-deadlines-counter {
+    gap: 8px;
+  }
+
+  .summary_bubble .line {
+    height: 48px;
   }
 }
 
 @media (max-width: 480px) {
   .nav-link {
-    font-size: 14px;
     gap: 2px;
     padding: 6px 2px;
   }
 
   #sidebar.guest-sidebar .nav-link {
-    font-size: 14px;
     padding: 0 8px;
   }
 
@@ -582,21 +635,6 @@ main {
 
   .add-task-form {
     padding: 20px;
-  }
-
-  .summary_row_first {
-    flex-direction: column;
-  }
-
-  #all-deadlines-counter {
-    flex-direction: row;
-  }
-
-  #deadline-bubble {
-    flex-direction: column;
-  }
-  #deadline-bubble .line {
-    display: none;
   }
 }
 
