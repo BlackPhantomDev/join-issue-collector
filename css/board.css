@@ -398,7 +398,7 @@ dialog#openDialogBoard footer {
 .flex-sb {
   display: flex;
   justify-content: space-between;
-  align-items: center;
+  align-items: flex-start;
 }
 
 .flex-sb button {
@@ -446,8 +446,11 @@ dialog#openDialogBoard p:has(img) {
 }
 
 dialog#openDialogBoard .category-badge {
+  display: inline-flex;
+  align-items: center;
   width: auto;
   max-width: 100%;
+  min-height: 30px;
 }
 
 .ai-badge {
