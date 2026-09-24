@@ -550,8 +550,9 @@ main {
     font-size: 32px;
   }
 
-  dialog#openDialogBoard .creator-row > span:first-child {
-    min-width: 0;
+  dialog#openDialogBoard p > span:first-child,
+  dialog#openDialogBoard .creator-label {
+    min-width: 90px;
   }
 
   .summary_row_first,

@@ -445,12 +445,16 @@ function getCreatorTemplate(creator) {
   const icon = isExtern ? "creator-extern.svg" : "creator-member.svg";
   return `
     <p class="creator-row">
-        <span>Creator:</span>
-        <span class="creator-badge creator-badge-${isExtern ? "extern" : "member"}">
-            <img src="./assets/icons/${icon}" alt="${label} icon">${label}
+        <span class="creator-badge-line">
+            <span class="creator-badge creator-badge-${isExtern ? "extern" : "member"}">
+                <img src="./assets/icons/${icon}" alt="${label} icon">${label}
+            </span>
         </span>
-        <span class="creator-name">${creator.name}</span>
-        ${getCreatorActionTemplate(creator, isExtern)}
+        <span class="creator-main">
+            <span class="creator-label">Creator:</span>
+            <span class="creator-name">${creator.name}</span>
+            ${getCreatorActionTemplate(creator, isExtern)}
+        </span>
     </p>`;
 }
 

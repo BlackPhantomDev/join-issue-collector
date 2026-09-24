@@ -428,14 +428,13 @@ dialog#openDialogBoard p {
   margin-bottom: 16px;
 }
 
-dialog#openDialogBoard p span:first-child {
+dialog#openDialogBoard p > span:first-child {
   min-width: 115px;
 }
 
 dialog#openDialogBoard p:has(img) {
   display: flex;
   align-items: center;
-  gap: 8px;
 }
 
 .dialog-badges {
@@ -475,6 +474,23 @@ dialog#openDialogBoard .creator-row {
   align-items: center;
   flex-wrap: wrap;
   gap: 8px;
+}
+
+.creator-badge-line {
+  display: flex;
+  flex: 0 0 100%;
+}
+
+.creator-main {
+  display: flex;
+  align-items: center;
+  flex: 1 1 100%;
+  gap: 12px;
+  min-width: 0;
+}
+
+dialog#openDialogBoard .creator-label {
+  min-width: 115px;
 }
 
 .creator-badge {
